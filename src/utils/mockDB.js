@@ -10,40 +10,52 @@ export const ROLE_PERMISSIONS = {
     canBulkUpload: true,
     canViewHostelStats: true,
     canViewHostelDetails: true,
+    canManageTenants: true,      // Manage Rooms/Allocations
+    canCreateRoom: true,         // Structural changes
+    canViewApplications: true,   // View student applications
+    canProcessApplications: true,// Approve/Reject
+    canApplyHostel: false,
   },
   staff: {
     canViewUsers: true,
-    canCreateUser: true,       // Staff can create users
-    canDeleteUser: false,      // But cannot delete
-    canUpdateRole: false,      // Or change roles
-    canBulkUpload: false,      // No bulk upload
-    canViewHostelStats: true,  // Can see capacity
-    canViewHostelDetails: true,// Can track students
-  },
-  counselor: {
-    canViewUsers: true,
-    canCreateUser: false,
+    canCreateUser: true,
     canDeleteUser: false,
     canUpdateRole: false,
     canBulkUpload: false,
-    canViewHostelStats: false,
-    canViewHostelDetails: false,
+    canViewHostelStats: true,
+    canViewHostelDetails: true,
+    canManageTenants: true,      // Staff can assign rooms
+    canCreateRoom: false,
+    canViewApplications: true,   // Staff can view apps
+    canProcessApplications: true,// Staff can approve/reject
+    canApplyHostel: false,
+  },
+  counselor: {
+    // ... (unchanged mainly)
+    canViewUsers: true,
+    canCreateUser: false,
+    canDeleteUser: false,
+    canManageTenants: false,
+    canViewApplications: false,
+    canApplyHostel: false,
   },
   student: {
     canViewUsers: false,
-    // ... limited access
+    canManageTenants: false,
+    canViewApplications: false,
+    canApplyHostel: true,        // Student can apply
   }
 };
 
-// --- EXISTING DATA ---
+// --- DATA ---
 
 export const MOCK_USERS = [
   { id: 1, email: "admin@school.com", password: "123", role: "admin", name: "Principal Skinner" },
-  { id: 2, email: "counselor@school.com", password: "123", role: "counselor", name: "Mr. Mackey" },
   { id: 3, email: "staff@school.com", password: "123", role: "staff", name: "Groundskeeper Willie" },
   { id: 4, email: "student@school.com", password: "123", role: "student", name: "Bart Simpson" },
   { id: 5, email: "milhouse@school.com", password: "123", role: "student", name: "Milhouse Van Houten" },
   { id: 6, email: "nelson@school.com", password: "123", role: "student", name: "Nelson Muntz" },
+  // ... others
 ];
 
 export const generateMockJWT = (user) => {
@@ -51,15 +63,29 @@ export const generateMockJWT = (user) => {
   return `fake-jwt-header.${btoa(payload)}.fake-signature`;
 };
 
-export const MOCK_HOSTEL_ROOMS = [
-  { id: 101, floor: 1, number: "101", capacity: 2 },
-  { id: 102, floor: 1, number: "102", capacity: 2 },
-  { id: 201, floor: 2, number: "201", capacity: 4 }, 
-  { id: 202, floor: 2, number: "202", capacity: 1 }, 
+// Rooms (Tenant Management)
+export let MOCK_HOSTEL_ROOMS = [
+  { id: 101, floor: 1, number: "101", capacity: 2, type: "Double" },
+  { id: 102, floor: 1, number: "102", capacity: 2, type: "Double" },
+  { id: 201, floor: 2, number: "201", capacity: 1, type: "Single" },
+  { id: 202, floor: 2, number: "202", capacity: 2, type: "Double" },
 ];
 
-export const MOCK_ALLOCATIONS = [
+export let MOCK_ALLOCATIONS = [
   { id: 1, userId: 4, roomId: 101, startDate: "2024-01-15", endDate: "2024-12-15" }, 
-  { id: 2, userId: 5, roomId: 101, startDate: "2024-02-01", endDate: "2024-12-15" }, 
-  { id: 3, userId: 6, roomId: 201, startDate: "2024-03-10", endDate: "2025-03-10" }, 
+];
+
+// Applications (New)
+// Status: 'pending', 'approved', 'rejected'
+export let MOCK_APPLICATIONS = [
+  { 
+    id: 1, 
+    userId: 5, // Milhouse
+    distance: 120, // km
+    income: 25000, 
+    gpa: 3.8,
+    points: 85, 
+    status: 'pending',
+    submissionDate: '2024-02-10'
+  }
 ];
