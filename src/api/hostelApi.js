@@ -3,25 +3,38 @@ import { MOCK_HOSTEL_ROOMS, MOCK_ALLOCATIONS, MOCK_USERS } from '../utils/mockDB
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Get Overview
-export const getHostelStatsAPI = async () => {
+// --- GETTERS ---
+
+export const getHostelsAPI = async () => {
+  await delay(200);
+  const hostels = [...new Set(MOCK_HOSTEL_ROOMS.map(r => r.hostel))];
+  return hostels.sort();
+};
+
+export const getHostelStatsAPI = async (hostelName = null) => {
   await delay(300);
   
-  const totalCapacity = MOCK_HOSTEL_ROOMS.reduce((sum, room) => sum + room.capacity, 0);
-  const occupiedBeds = MOCK_ALLOCATIONS.length;
+  // 1. Filter rooms if a specific hostel is selected
+  let rooms = MOCK_HOSTEL_ROOMS;
+  if (hostelName && hostelName !== 'All') {
+    rooms = rooms.filter(r => r.hostel === hostelName);
+  }
+
+  const totalCapacity = rooms.reduce((sum, room) => sum + room.capacity, 0);
   
-  // Calculate detailed room stats
-  const roomStats = MOCK_HOSTEL_ROOMS.map(room => {
-    // Find allocations for this room
+  // 2. Map rooms to include their occupant details
+  const roomStats = rooms.map(room => {
+    // Find allocations for this specific room
     const allocations = MOCK_ALLOCATIONS.filter(a => a.roomId === room.id);
     
-    // Enrich allocation with student names
+    // Enrich with user details
     const occupants = allocations.map(alloc => {
       const student = MOCK_USERS.find(u => u.id === alloc.userId);
       return {
         ...alloc,
         studentName: student ? student.name : 'Unknown',
-        studentEmail: student ? student.email : 'Unknown'
+        studentEmail: student ? student.email : 'Unknown',
+        role: student ? student.role : 'student'
       };
     });
 
@@ -34,6 +47,9 @@ export const getHostelStatsAPI = async () => {
     };
   });
 
+  // 3. Calculate Global Occupancy for the selected scope
+  const occupiedBeds = roomStats.reduce((sum, room) => sum + room.currentOccupancy, 0);
+
   return {
     totalCapacity,
     occupiedBeds,
@@ -42,12 +58,19 @@ export const getHostelStatsAPI = async () => {
   };
 };
 
+// Used to check if a specific student is already allocated anywhere
+export const getAllAllocationsAPI = async () => {
+    await delay(200);
+    return [...MOCK_ALLOCATIONS];
+};
+
 export const getStudentHostelDetailsAPI = async (userId) => {
   await delay(300);
   const allocation = MOCK_ALLOCATIONS.find(a => a.userId === userId);
   if (!allocation) return null;
   const room = MOCK_HOSTEL_ROOMS.find(r => r.id === allocation.roomId);
   return {
+    hostelName: room.hostel,
     roomNumber: room.number,
     floor: room.floor,
     startDate: allocation.startDate,
@@ -55,17 +78,17 @@ export const getStudentHostelDetailsAPI = async (userId) => {
   };
 };
 
-// --- MANAGEMENT APIs ---
+// --- ACTION METHODS ---
 
 export const assignRoomAPI = async (userId, roomId) => {
   await delay(400);
 
-  // Validation 1: Is user already assigned?
+  // Business Rule 1: Student cannot be in two rooms
   if (MOCK_ALLOCATIONS.find(a => a.userId === parseInt(userId))) {
     throw new Error("Student is already assigned to a room.");
   }
 
-  // Validation 2: Is room full?
+  // Business Rule 2: Room cannot exceed capacity
   const currentOccupants = MOCK_ALLOCATIONS.filter(a => a.roomId === parseInt(roomId));
   const room = MOCK_HOSTEL_ROOMS.find(r => r.id === parseInt(roomId));
   
@@ -94,18 +117,16 @@ export const removeAllocationAPI = async (userId) => {
   return { success: true };
 };
 
-// --- NEW STRUCTURAL APIs ---
-
 export const createRoomAPI = async (roomData) => {
   await delay(400);
 
-  // Check if room number exists
-  if (MOCK_HOSTEL_ROOMS.some(r => r.number === roomData.number)) {
-    throw new Error(`Room number ${roomData.number} already exists.`);
+  if (MOCK_HOSTEL_ROOMS.some(r => r.number === roomData.number && r.hostel === roomData.hostel)) {
+    throw new Error(`Room ${roomData.number} already exists in ${roomData.hostel}.`);
   }
 
   const newRoom = {
     id: Date.now(),
+    hostel: roomData.hostel,
     number: roomData.number,
     floor: parseInt(roomData.floor),
     capacity: parseInt(roomData.capacity),

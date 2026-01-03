@@ -1,6 +1,6 @@
 // src/utils/mockDB.js
 
-// ... [Permissions code remains unchanged] ...
+// --- PERMISSIONS CONFIGURATION ---
 export const ROLE_PERMISSIONS = {
   admin: {
     canViewUsers: true,
@@ -10,8 +10,8 @@ export const ROLE_PERMISSIONS = {
     canBulkUpload: true,
     canViewHostelStats: true,
     canViewHostelDetails: true,
-    canManageTenants: true,
-    canCreateRoom: true,
+    canManageTenants: true, // Admin can assign/remove students
+    canCreateRoom: true,    // Admin can create new rooms
     canViewApplications: true,
     canProcessApplications: true,
     canApplyHostel: false,
@@ -25,8 +25,8 @@ export const ROLE_PERMISSIONS = {
     canBulkUpload: false,
     canViewHostelStats: true,
     canViewHostelDetails: true,
-    canManageTenants: true,
-    canCreateRoom: false,
+    canManageTenants: true, // Staff can assign/remove students
+    canCreateRoom: false,   // Staff CANNOT create rooms
     canViewApplications: true,
     canProcessApplications: true,
     canApplyHostel: false,
@@ -73,12 +73,16 @@ export const generateMockJWT = (user) => {
   return `fake-jwt-header.${btoa(payload)}.fake-signature`;
 };
 
-// Rooms
+// Rooms (Updated with 'hostel' field)
 export let MOCK_HOSTEL_ROOMS = [
-  { id: 101, floor: 1, number: "101", capacity: 2, type: "Double" },
-  { id: 102, floor: 1, number: "102", capacity: 2, type: "Double" },
-  { id: 201, floor: 2, number: "201", capacity: 1, type: "Single" },
-  { id: 202, floor: 2, number: "202", capacity: 2, type: "Double" },
+  // Men's Hostel A
+  { id: 101, hostel: "Men's Hostel A", floor: 1, number: "101", capacity: 2, type: "Double" },
+  { id: 102, hostel: "Men's Hostel A", floor: 1, number: "102", capacity: 2, type: "Double" },
+  { id: 201, hostel: "Men's Hostel A", floor: 2, number: "201", capacity: 1, type: "Single" },
+  
+  // Women's Hostel B
+  { id: 301, hostel: "Women's Hostel B", floor: 1, number: "101", capacity: 2, type: "Double" },
+  { id: 302, hostel: "Women's Hostel B", floor: 1, number: "102", capacity: 4, type: "Dorm" },
 ];
 
 // Allocations
@@ -90,11 +94,10 @@ export let MOCK_ALLOCATIONS = [
 export let MOCK_APPLICATIONS = [
   { 
     id: 1, 
-    userId: 5, // Milhouse
-    status: 'pending',
+    userId: 5, 
+    status: 'approved', // Changed to 'approved' so Milhouse appears in "Eligible Students" list
     points: 85,
     submissionDate: '2024-02-10',
-
     fullName: "Milhouse Van Houten", 
     indexNumber: "ST-2024-001",
     permanentAddress: "742 Evergreen Terrace, Springfield",
@@ -125,8 +128,6 @@ export let MOCK_APPLICATIONS = [
     emergencyName: 'Kirk Van Houten',
     emergencyMobile: '0711112222',
     emergencyAddress: 'Same as permanent',
-
-    // MOCK FILES
     file_residence: "gn_certificate_milhouse.pdf",
     file_income: "dad_salary_slip.png",
     file_siblings: "school_letter_lisa.jpg",

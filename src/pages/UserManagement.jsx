@@ -10,7 +10,7 @@ const UserManagement = () => {
   const { user } = useAuth();
   const perms = usePermissions(); // Get permissions for current user
 
-  // Data State
+  // Data State0d
   const [users, setUsers] = useState([]);
   const [hostelStats, setHostelStats] = useState(null);
   
@@ -139,7 +139,7 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* 2. Hostel Stats Row (CONDITIONAL) */}
+      {/* 2. Hostel Stats Row (CONDITIONAL)
       {perms.canViewHostelStats && hostelStats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-between">
@@ -166,7 +166,7 @@ const UserManagement = () => {
             <div className="h-10 w-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">📊</div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Alerts */}
       {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">{error}</div>}
