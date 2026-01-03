@@ -26,7 +26,7 @@ const StudentApplication = () => {
     closestTown: '',
     distanceToTown: '', 
     distance: '',       
-    walkingDistance: '', 
+    walkingDistance: '', // NEW
 
     // --- 3. Academic ---
     faculty: '',
@@ -38,57 +38,57 @@ const StudentApplication = () => {
     isMahapolaRecipient: 'no', 
     bursaryAmount: '',
 
-    // --- 5. Siblings ---
+    // --- 5. Siblings (Detailed) ---
     siblingsSchool: '0', 
     siblingsUni: '0',
-    sibling1Name: '', sibling1School: '', sibling1Grade: '',
-    sibling2Name: '', sibling2School: '', sibling2Grade: '',
+    // We will map these dynamically in UI, but keep flat state for simplicity
+    sibling1Name: '', sibling1Type: 'School', sibling1Info: '',
+    sibling2Name: '', sibling2Type: 'School', sibling2Info: '',
+    sibling3Name: '', sibling3Type: 'School', sibling3Info: '',
     siblingDisability: 'no',
-    siblingDisabilityDetails: '',
 
-    // --- 6. Family Income & Parents ---
+    // --- 6. Family Income & Parents (Detailed) ---
     motherAlive: 'yes',
+    motherName: '', motherAge: '', motherOccupation: '', motherIncome: '',
+    
     fatherAlive: 'yes',
+    fatherName: '', fatherAge: '', fatherOccupation: '', fatherIncome: '',
+    
     guardianAlive: 'no',
-    parentDisability: 'no', 
-    parentDisabilityDetails: '',
-    motherOccupation: '', fatherOccupation: '', guardianOccupation: '',
-    motherIncome: '', fatherIncome: '', guardianIncome: '',
-    incomeRange: 'below_100k', 
+    guardianName: '', guardianAge: '', guardianOccupation: '', guardianIncome: '',
+    
+    incomeRange: 'below_100k', // Kept for point calculation logic
     isSamurdhiRecipient: 'no', 
+    parentDisability: 'no', 
 
-    // --- 7. Hostel History ---
-    prevHostel: 'no',
-    prevHostelYears: '',
-
-    // --- 8. Emergency Contact ---
+    // --- 7. Emergency Contact (NEW) ---
     emergencyName: '',
     emergencyAddress: '',
     emergencyMobile: '',
     emergencyResidence: '',
 
-    // --- 9. Extra Curricular ---
+    // --- 8. Extra Curricular (Detailed) ---
     isCaptain: 'no', 
-    captainTeam: '',
+    captainTeam: '', captainYear: '',
     isMember: 'no',  
-    memberTeam: '',
+    memberTeam: '', memberYear: '',
     hasColours: 'no', 
     coloursDetails: '',
 
-    // --- 10. Other ---
+    // --- 9. Submission ---
     specialReasons: '',
     hostelPref: '',
 
-    // --- 11. FILES / PROOFS (NEW) ---
-    file_residence: null,       // GN Certificate
-    file_income: null,          // Salary/GN Income Cert
-    file_siblings: null,        // School/Uni Letters
-    file_siblingMedical: null,  // Sibling Disability
-    file_parentDeath: null,     // Death Cert
-    file_parentMedical: null,   // Parent Disability
-    file_samurdhi: null,        // Samurdhi Card
-    file_sports: null,          // Sports Certs
-    file_special: null          // Special Reasons Docs
+    // --- FILES ---
+    file_residence: null,
+    file_income: null,
+    file_siblings: null,
+    file_siblingMedical: null,
+    file_parentDeath: null,
+    file_parentMedical: null,
+    file_samurdhi: null,
+    file_sports: null,
+    file_special: null
   });
 
   useEffect(() => {
@@ -109,8 +109,6 @@ const StudentApplication = () => {
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'file') {
-      // For mock purposes, we store the file name. 
-      // In a real app, you'd store the file object or upload it immediately.
       setFormData(prev => ({ ...prev, [name]: files[0] ? files[0].name : '' }));
     } else {
       setFormData(prev => ({ 
@@ -133,19 +131,12 @@ const StudentApplication = () => {
     }
   };
 
-  // Helper for conditional file inputs
   const FileInput = ({ label, name, required = false }) => (
     <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg">
       <label className="block text-sm font-medium mb-1 dark:text-slate-300">
         📎 {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <input 
-        type="file" 
-        name={name} 
-        onChange={handleChange} 
-        required={required}
-        className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200"
-      />
+      <input type="file" name={name} onChange={handleChange} required={required} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200"/>
       {formData[name] && <p className="text-xs text-green-600 mt-1">Selected: {formData[name]}</p>}
     </div>
   );
@@ -162,6 +153,9 @@ const StudentApplication = () => {
     return ['General Hostel']; 
   };
 
+  // Helper to calculate total siblings for display logic
+  const totalSiblings = parseInt(formData.siblingsSchool || 0) + parseInt(formData.siblingsUni || 0);
+
   if (loading) return <div className="p-8 text-center">Loading status...</div>;
 
   return (
@@ -175,17 +169,11 @@ const StudentApplication = () => {
               <span className="block text-xs uppercase font-bold mt-1">Total Score</span>
            </div>
            <div className="mb-6">
-            <span className={`px-4 py-2 rounded-full uppercase font-bold text-sm
-              ${application.status === 'approved' ? 'bg-green-100 text-green-700' : 
-                application.status === 'rejected' ? 'bg-red-100 text-red-700' : 
-                'bg-yellow-100 text-yellow-700'}`}>
+            <span className={`px-4 py-2 rounded-full uppercase font-bold text-sm ${application.status === 'approved' ? 'bg-green-100 text-green-700' : application.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
               Status: {application.status}
             </span>
           </div>
           <p className="text-slate-500">Submitted on {application.submissionDate}</p>
-          {application.status === 'approved' && (
-             <p className="mt-4 text-green-600 font-medium">Allocated Hostel: {application.hostelPref}</p>
-          )}
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -197,6 +185,10 @@ const StudentApplication = () => {
                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Name in Full</label>
                     <input type="text" name="fullName" required value={formData.fullName} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                 </div>
+                 <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Name with Initials</label>
+                    <input type="text" name="nameWithInitials" required value={formData.nameWithInitials} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Index Number</label>
@@ -214,11 +206,15 @@ const StudentApplication = () => {
                     <input type="text" name="permanentAddress" required value={formData.permanentAddress} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Mobile Tel</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Mobile Phone</label>
                     <input type="tel" name="mobilePhone" required value={formData.mobilePhone} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Email</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Residence Phone</label>
+                    <input type="tel" name="residentPhone" value={formData.residentPhone} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                 </div>
+                 <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Email Address</label>
                     <input type="email" name="email" required value={formData.email} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
             </div>
@@ -236,30 +232,40 @@ const StudentApplication = () => {
                         <option value="Kandy">Kandy</option>
                         <option value="Galle">Galle</option>
                         <option value="Matara">Matara</option>
-                        {/* Add other districts... */}
+                        {/* Add others */}
                     </select>
+                 </div>
+                 <div>
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Closest Town</label>
+                    <input type="text" name="closestTown" required value={formData.closestTown} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                 </div>
+                 <div>
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Distance to Town (Km)</label>
+                    <input type="number" name="distanceToTown" required min="0" value={formData.distanceToTown} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Distance to University (Km)</label>
                     <input type="number" name="distance" required min="0" value={formData.distance} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
+                 <div>
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Walking distance from bus stop (Km)</label>
+                    <input type="number" name="walkingDistance" min="0" step="0.1" value={formData.walkingDistance} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                 </div>
             </div>
-            
-            {/* PROOF 1: RESIDENCE */}
-            <FileInput 
-              name="file_residence" 
-              label="Grama Niladhari Certificate (Residence Proof)" 
-              required 
-            />
+            <FileInput name="file_residence" label="Grama Niladhari Certificate" required />
           </div>
 
           {/* --- SECTION 3: ACADEMIC --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
-            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">3. Academic & Financial</h2>
+            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">3. Academic Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Faculty</label>
                     <input type="text" name="faculty" required value={formData.faculty} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                 </div>
+                 <div>
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Department</label>
+                    <input type="text" name="department" value={formData.department} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Year</label>
@@ -271,18 +277,79 @@ const StudentApplication = () => {
                     </select>
                  </div>
             </div>
+            <div className="mt-4">
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">Have you been punished/warned for misconduct?</label>
+                <input type="text" name="misconduct" placeholder="If yes, give details. If no, type 'No'" required value={formData.misconduct} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+            </div>
           </div>
 
-          {/* --- SECTION 4: INCOME & FAMILY --- */}
+          {/* --- SECTION 4: FAMILY & INCOME --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">4. Family & Income</h2>
             
+            {/* MOTHER */}
+            <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-300">Mother</h3>
+                    <label className="text-sm dark:text-slate-400 flex items-center gap-2">
+                        Alive?
+                        <select name="motherAlive" value={formData.motherAlive} onChange={handleChange} className="p-1 border rounded text-xs">
+                            <option value="yes">Yes</option><option value="no">No</option>
+                        </select>
+                    </label>
+                </div>
+                {formData.motherAlive === 'yes' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input name="motherName" placeholder="Name" value={formData.motherName} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                        <input name="motherAge" placeholder="Age" type="number" value={formData.motherAge} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                        <input name="motherOccupation" placeholder="Occupation" value={formData.motherOccupation} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                        <input name="motherIncome" placeholder="Monthly Income (Rs.)" type="number" value={formData.motherIncome} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                    </div>
+                )}
+            </div>
+
+            {/* FATHER */}
+            <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-300">Father</h3>
+                    <label className="text-sm dark:text-slate-400 flex items-center gap-2">
+                        Alive?
+                        <select name="fatherAlive" value={formData.fatherAlive} onChange={handleChange} className="p-1 border rounded text-xs">
+                            <option value="yes">Yes</option><option value="no">No</option>
+                        </select>
+                    </label>
+                </div>
+                {formData.fatherAlive === 'yes' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input name="fatherName" placeholder="Name" value={formData.fatherName} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                        <input name="fatherAge" placeholder="Age" type="number" value={formData.fatherAge} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                        <input name="fatherOccupation" placeholder="Occupation" value={formData.fatherOccupation} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                        <input name="fatherIncome" placeholder="Monthly Income (Rs.)" type="number" value={formData.fatherIncome} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                    </div>
+                )}
+            </div>
+
+             {/* GUARDIAN */}
+             <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-300">Guardian (if applicable)</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input name="guardianName" placeholder="Name" value={formData.guardianName} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                    <input name="guardianAge" placeholder="Age" type="number" value={formData.guardianAge} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                    <input name="guardianOccupation" placeholder="Occupation" value={formData.guardianOccupation} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                    <input name="guardianIncome" placeholder="Monthly Income (Rs.)" type="number" value={formData.guardianIncome} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
+                </div>
+            </div>
+            
+            {/* Income Range Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Annual Family Income</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">Annual Family Income Range</label>
                     <select name="incomeRange" value={formData.incomeRange} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
                         <option value="below_100k">100,000 or below</option>
                         <option value="100k_150k">100,000 - 150,000</option>
+                        <option value="150k_200k">150,000 - 200,000</option>
                         <option value="above_450k">450,000 or above</option>
                     </select>
                 </div>
@@ -295,135 +362,116 @@ const StudentApplication = () => {
                 </div>
             </div>
 
-            {/* PROOF 6: INCOME */}
-            <FileInput 
-              name="file_income" 
-              label="Salary Statement or GN Income Certificate" 
-              required 
-            />
-
-            {/* PROOF 7: SAMURDHI */}
+            <FileInput name="file_income" label="Salary Statement / Income Cert" required />
+            {(formData.motherAlive === 'no' || formData.fatherAlive === 'no') && (
+                <FileInput name="file_parentDeath" label="Death Certificate(s)" required />
+            )}
             {formData.isSamurdhiRecipient === 'yes' && (
                 <FileInput name="file_samurdhi" label="Copy of Samurdhi Card" required />
             )}
-
-            <div className="mt-6 border-t pt-4 dark:border-slate-700">
-                 <h4 className="font-semibold text-sm dark:text-slate-300 mb-3">Parental Status</h4>
-                 <div className="flex gap-6 mb-2">
-                    <label className="block text-sm dark:text-slate-300">Mother Alive?</label>
-                    <select name="motherAlive" value={formData.motherAlive} onChange={handleChange} className="p-1 border rounded dark:bg-slate-900 dark:border-slate-600">
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                    
-                    <label className="block text-sm dark:text-slate-300">Father Alive?</label>
-                    <select name="fatherAlive" value={formData.fatherAlive} onChange={handleChange} className="p-1 border rounded dark:bg-slate-900 dark:border-slate-600">
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                 </div>
-
-                 {/* PROOF 4: DEATH CERT */}
-                 {(formData.motherAlive === 'no' || formData.fatherAlive === 'no') && (
-                    <FileInput name="file_parentDeath" label="Death Certificate(s)" required />
-                 )}
-
-                 <div className="mt-4">
-                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Parent with disability/illness?</label>
-                     <select name="parentDisability" value={formData.parentDisability} onChange={handleChange} className="w-full md:w-1/4 p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                        <option value="no">No</option>
-                        <option value="yes">Yes</option>
-                     </select>
-                     {/* PROOF 5: PARENT MEDICAL */}
-                     {formData.parentDisability === 'yes' && (
-                        <FileInput name="file_parentMedical" label="Parent Medical Certificates" required />
-                     )}
-                 </div>
-            </div>
           </div>
 
           {/* --- SECTION 5: SIBLINGS --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
-            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">5. Siblings</h2>
+            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">5. Siblings (Students)</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Siblings in School</label>
                     <select name="siblingsSchool" value={formData.siblingsSchool} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                        <option value="0">None</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3 or more</option>
+                        <option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3 or more</option>
                     </select>
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Siblings in University</label>
                     <select name="siblingsUni" value={formData.siblingsUni} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                        <option value="0">None</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3 or more</option>
+                        <option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3 or more</option>
                     </select>
                  </div>
             </div>
 
-            {/* PROOF 2: SIBLING STUDY */}
-            {(parseInt(formData.siblingsSchool) > 0 || parseInt(formData.siblingsUni) > 0) && (
-                <FileInput name="file_siblings" label="School/University Letters (Principal/Registrar)" required />
+            {/* Dynamic Sibling Fields based on Count */}
+            {totalSiblings > 0 && (
+                <div className="space-y-4 mb-4 bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
+                    <p className="text-sm font-bold text-slate-500 uppercase">Sibling Details</p>
+                    {[...Array(Math.min(3, totalSiblings))].map((_, i) => (
+                        <div key={i} className="grid grid-cols-3 gap-2">
+                             <input name={`sibling${i+1}Name`} placeholder={`Sibling ${i+1} Name`} onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-600" />
+                             <select name={`sibling${i+1}Type`} onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-600">
+                                <option value="School">School</option>
+                                <option value="University">University</option>
+                             </select>
+                             <input name={`sibling${i+1}Info`} placeholder="Grade / Year" onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-600" />
+                        </div>
+                    ))}
+                </div>
             )}
 
-            <div className="mt-4">
-                 <label className="block text-sm font-medium mb-1 dark:text-slate-300">Sibling with disability?</label>
-                 <select name="siblingDisability" value={formData.siblingDisability} onChange={handleChange} className="w-full md:w-1/4 p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                    <option value="no">No</option>
-                    <option value="yes">Yes</option>
-                 </select>
-                 {/* PROOF 3: SIBLING MEDICAL */}
-                 {formData.siblingDisability === 'yes' && (
-                    <FileInput name="file_siblingMedical" label="Sibling Medical Certificates" required />
-                 )}
+            {(totalSiblings > 0) && <FileInput name="file_siblings" label="Student Letters (Principal/Registrar)" required />}
+          </div>
+
+          {/* --- SECTION 6: EMERGENCY CONTACT --- */}
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
+            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">6. Emergency Contact</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input name="emergencyName" placeholder="Name" required value={formData.emergencyName} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
+                <input name="emergencyAddress" placeholder="Address" required value={formData.emergencyAddress} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
+                <input name="emergencyMobile" placeholder="Mobile No" required value={formData.emergencyMobile} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
+                <input name="emergencyResidence" placeholder="Residence No" value={formData.emergencyResidence} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
             </div>
           </div>
 
-          {/* --- SECTION 6: SPORTS --- */}
+          {/* --- SECTION 7: SPORTS --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
-            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">6. Sports & Extra Curricular</h2>
-            
+            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">7. Sports Activities</h2>
             <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium dark:text-slate-300">University Captain / Member / Colours?</label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                        <label className="flex items-center gap-2 dark:text-slate-400">
-                             <input type="checkbox" checked={formData.isCaptain === 'yes'} onChange={e => setFormData({...formData, isCaptain: e.target.checked ? 'yes' : 'no'})} /> Captain
-                        </label>
-                        <label className="flex items-center gap-2 dark:text-slate-400">
-                             <input type="checkbox" checked={formData.isMember === 'yes'} onChange={e => setFormData({...formData, isMember: e.target.checked ? 'yes' : 'no'})} /> Member
-                        </label>
-                        <label className="flex items-center gap-2 dark:text-slate-400">
-                             <input type="checkbox" checked={formData.hasColours === 'yes'} onChange={e => setFormData({...formData, hasColours: e.target.checked ? 'yes' : 'no'})} /> Colours
-                        </label>
-                    </div>
+                <div className="p-3 border rounded dark:border-slate-600">
+                    <label className="flex items-center gap-2 font-medium dark:text-slate-300 mb-2">
+                        <input type="checkbox" checked={formData.isCaptain === 'yes'} onChange={e => setFormData({...formData, isCaptain: e.target.checked ? 'yes' : 'no'})} /> 
+                        Are you a University Team Captain?
+                    </label>
+                    {formData.isCaptain === 'yes' && (
+                        <div className="grid grid-cols-2 gap-4 pl-6">
+                            <input name="captainTeam" placeholder="Team Name" onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-900 dark:border-slate-600" />
+                            <input name="captainYear" placeholder="Academic Year" onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-900 dark:border-slate-600" />
+                        </div>
+                    )}
                 </div>
 
-                {/* PROOF 8: SPORTS */}
+                <div className="p-3 border rounded dark:border-slate-600">
+                    <label className="flex items-center gap-2 font-medium dark:text-slate-300 mb-2">
+                        <input type="checkbox" checked={formData.isMember === 'yes'} onChange={e => setFormData({...formData, isMember: e.target.checked ? 'yes' : 'no'})} /> 
+                        Are you a University Team Member?
+                    </label>
+                    {formData.isMember === 'yes' && (
+                        <div className="grid grid-cols-2 gap-4 pl-6">
+                            <input name="memberTeam" placeholder="Team Name" onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-900 dark:border-slate-600" />
+                            <input name="memberYear" placeholder="Academic Year" onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-900 dark:border-slate-600" />
+                        </div>
+                    )}
+                </div>
+                
+                <div className="p-3 border rounded dark:border-slate-600">
+                     <label className="flex items-center gap-2 font-medium dark:text-slate-300">
+                        <input type="checkbox" checked={formData.hasColours === 'yes'} onChange={e => setFormData({...formData, hasColours: e.target.checked ? 'yes' : 'no'})} /> 
+                        Have you won any University Colors?
+                    </label>
+                </div>
+
                 {(formData.isCaptain === 'yes' || formData.isMember === 'yes' || formData.hasColours === 'yes') && (
-                    <FileInput name="file_sports" label="Sports Certificates/Letters" required />
+                    <FileInput name="file_sports" label="Sports Certificates" required />
                 )}
             </div>
           </div>
 
-          {/* --- SECTION 7: SUBMISSION --- */}
+          {/* --- SECTION 8: SUBMISSION --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
-            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">7. Final Submission</h2>
+            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">8. Final Submission</h2>
             
             <div className="mb-4">
                  <label className="block text-sm font-medium mb-1 dark:text-slate-300">Special Reasons (Optional)</label>
                  <textarea name="specialReasons" value={formData.specialReasons} onChange={handleChange} rows="3" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"></textarea>
-                 
-                 {/* PROOF 9: SPECIAL REASONS */}
-                 {formData.specialReasons && (
-                    <FileInput name="file_special" label="Supporting Documents for Special Reasons" />
-                 )}
+                 {formData.specialReasons && <FileInput name="file_special" label="Supporting Documents" />}
             </div>
 
             <div className="mb-6">
@@ -436,11 +484,7 @@ const StudentApplication = () => {
                </select>
             </div>
 
-            <button 
-                type="submit" 
-                disabled={submitting}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition disabled:opacity-50"
-            >
+            <button type="submit" disabled={submitting} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition disabled:opacity-50">
                 {submitting ? 'Submitting...' : 'Submit Application'}
             </button>
           </div>
