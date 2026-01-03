@@ -58,14 +58,14 @@ export const ROLE_PERMISSIONS = {
 // --- DATA ---
 
 export const MOCK_USERS = [
-  { id: 1, email: "admin@school.com", password: "123", role: "admin", name: "Principal Skinner" },
-  { id: 2, email: "counselor@school.com", password: "123", role: "counselor", name: "Mr. Mackey" },
-  { id: 3, email: "staff@school.com", password: "123", role: "staff", name: "Groundskeeper Willie" },
-  { id: 4, email: "student@school.com", password: "123", role: "student", name: "Bart Simpson" },
-  { id: 5, email: "milhouse@school.com", password: "123", role: "student", name: "Milhouse Van Houten" },
-  { id: 6, email: "nelson@school.com", password: "123", role: "student", name: "Nelson Muntz" },
-  { id: 7, email: "ralph@school.com", password: "123", role: "student", name: "Ralph Wiggum" },
-  { id: 8, email: "martin@school.com", password: "123", role: "student", name: "Martin Prince" },
+  { id: 1, email: "admin@uom.local", password: "123", role: "admin", name: "Principal Skinner" },
+  { id: 2, email: "counselor@uom.local", password: "123", role: "counselor", name: "Mr. Mackey" },
+  { id: 3, email: "staff@uom.local", password: "123", role: "staff", name: "Groundskeeper Willie" },
+  { id: 4, email: "student@uom.local", password: "123", role: "student", name: "Bart Simpson" },
+  { id: 5, email: "milhouse@uom.local", password: "123", role: "student", name: "Milhouse Van Houten" },
+  { id: 6, email: "nelson@uom.local", password: "123", role: "student", name: "Nelson Muntz" },
+  { id: 7, email: "ralph@uom.local", password: "123", role: "student", name: "Ralph Wiggum" },
+  { id: 8, email: "martin@uom.local", password: "123", role: "student", name: "Martin Prince" },
 ];
 
 export const generateMockJWT = (user) => {

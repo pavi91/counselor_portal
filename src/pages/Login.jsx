@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [email, setEmail] = useState('student@school.com'); 
+  const [email, setEmail] = useState('student@uom.local'); 
   const [password, setPassword] = useState('123');
   const [error, setError] = useState('');
   
