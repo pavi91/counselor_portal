@@ -9,10 +9,13 @@ import Unauthorized from './pages/Unauthorized';
 import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/UserManagement';
 
-// Updated / New Pages
-import HostelManagement from './pages/HostelManagement'; // Reuse existing file for "Tenant Management"
+import HostelManagement from './pages/HostelManagement'; 
 import ApplicationReview from './pages/ApplicationReview';
 import StudentApplication from './pages/StudentApplication';
+
+// NEW Pages
+import StudentTickets from './pages/StudentTickets';
+import CounselorTickets from './pages/CounselorTickets';
 
 const Home = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white">
@@ -35,22 +38,25 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           <Route element={<DashboardLayout />}>
+            {/* Common */}
             <Route path="/home" element={<Dashboard />} />
 
-            {/* --- ADMIN & STAFF ROUTES --- */}
+            {/* ADMIN & STAFF */}
             <Route element={<ProtectedRoute allowedRoles={['admin', 'staff']} />}>
               <Route path="/management" element={<UserManagement />} />
-              
-              {/* Subcategory 1: Tenant Management (Rooms/Allocations) */}
               <Route path="/hostel/tenants" element={<HostelManagement />} />
-              
-              {/* Subcategory 2: Application Management (Points/Approvals) */}
               <Route path="/hostel/applications" element={<ApplicationReview />} />
             </Route>
 
-            {/* --- STUDENT ROUTES --- */}
+            {/* COUNSELOR (Admin can also access if needed) */}
+            <Route element={<ProtectedRoute allowedRoles={['counselor', 'admin']} />}>
+               <Route path="/counselor/tickets" element={<CounselorTickets />} />
+            </Route>
+
+            {/* STUDENT */}
             <Route element={<ProtectedRoute allowedRoles={['student']} />}>
               <Route path="/student/application" element={<StudentApplication />} />
+              <Route path="/student/tickets" element={<StudentTickets />} />
             </Route>
 
           </Route>

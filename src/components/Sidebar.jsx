@@ -26,27 +26,38 @@ const Sidebar = () => {
         {/* COMMON */}
         <NavItem to="/home" label="Dashboard" isActive={isActive('/home')} />
 
+        {/* --- COUNSELOR PORTAL --- */}
+        {perms.canViewTickets && user.role === 'counselor' && (
+           <div className="pt-4 pb-1">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">Counseling</div>
+              <NavItem to="/counselor/tickets" label="Incoming Tickets" isActive={isActive('/counselor/tickets')} icon="📨" />
+           </div>
+        )}
+
+        {/* --- STUDENT SERVICES --- */}
+        {user.role === 'student' && (
+           <div className="pt-4 pb-1">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">Student Services</div>
+              {perms.canApplyHostel && (
+                <NavItem to="/student/application" label="Hostel Application" isActive={isActive('/student/application')} icon="📝" />
+              )}
+              {perms.canCreateTicket && (
+                <NavItem to="/student/tickets" label="Counselor Support" isActive={isActive('/student/tickets')} icon="💬" />
+              )}
+           </div>
+        )}
+
         {/* --- HOSTEL MANAGEMENT (ADMIN & STAFF) --- */}
         {(perms.canManageTenants || perms.canViewApplications) && (
           <div className="pt-4 pb-1">
              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">Hostel Admin</div>
-             
              {perms.canManageTenants && (
                <NavItem to="/hostel/tenants" label="Tenant Management" isActive={isActive('/hostel/tenants')} icon="🏠" />
              )}
-             
              {perms.canViewApplications && (
                <NavItem to="/hostel/applications" label="Applications Review" isActive={isActive('/hostel/applications')} icon="📋" />
              )}
           </div>
-        )}
-
-        {/* --- STUDENT --- */}
-        {perms.canApplyHostel && (
-           <div className="pt-4 pb-1">
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">Student Services</div>
-              <NavItem to="/student/application" label="Hostel Application" isActive={isActive('/student/application')} icon="📝" />
-           </div>
         )}
 
         {/* USER MANAGEMENT */}
@@ -60,12 +71,13 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
-        v2.0.0 &copy; 2026
+        v2.1.0 &copy; 2026
       </div>
     </aside>
   );
 };
 
+// Helper for cleaner code
 const NavItem = ({ to, label, isActive, icon }) => (
   <Link
     to={to}

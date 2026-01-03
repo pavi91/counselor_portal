@@ -18,12 +18,7 @@ const calculatePoints = (data) => {
   else points += 0;
 
   // 2. Annual Family Income (Max 25)
-  // We expect data.incomeRange to be the lower bound of the bracket or a specific code
   const incomeCode = data.incomeRange; 
-  // Mapping based on your list:
-  // "0-100k": 25, "100k-150k": 23, "150k-200k": 20, "200k-250k": 17,
-  // "250k-300k": 14, "300k-350k": 11, "350k-400k": 8, "400k-450k": 5, "450k+": 3
-  
   const incomePoints = {
     "below_100k": 25,
     "100k_150k": 23,
@@ -71,8 +66,8 @@ export const getAllApplicationsAPI = async () => {
     const user = MOCK_USERS.find(u => u.id === app.userId);
     return {
       ...app,
-      studentName: user ? user.name : 'Unknown',
-      studentEmail: user ? user.email : 'Unknown'
+      studentName: app.fullName || (user ? user.name : 'Unknown'),
+      studentEmail: app.email || (user ? user.email : 'Unknown')
     };
   }).sort((a, b) => b.points - a.points);
 };
@@ -80,22 +75,24 @@ export const getAllApplicationsAPI = async () => {
 export const submitApplicationAPI = async (userId, formData) => {
   await delay(800);
   
-  if (MOCK_APPLICATIONS.find(a => a.userId === userId)) {
-    throw new Error("You have already submitted an application.");
-  }
-
+  const existingIndex = MOCK_APPLICATIONS.findIndex(a => a.userId === userId);
   const points = calculatePoints(formData);
   
   const newApp = {
-    id: Date.now(),
+    id: existingIndex >= 0 ? MOCK_APPLICATIONS[existingIndex].id : Date.now(),
     userId,
-    ...formData,
+    ...formData, // This now includes file_residence, file_income, etc.
     points,
-    status: 'pending',
+    status: existingIndex >= 0 ? MOCK_APPLICATIONS[existingIndex].status : 'pending',
     submissionDate: new Date().toISOString().split('T')[0]
   };
 
-  MOCK_APPLICATIONS.push(newApp);
+  if (existingIndex >= 0) {
+      MOCK_APPLICATIONS[existingIndex] = newApp;
+  } else {
+      MOCK_APPLICATIONS.push(newApp);
+  }
+  
   return newApp;
 };
 
