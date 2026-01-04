@@ -4,91 +4,81 @@ import { useAuth } from '../hooks/useAuth';
 import * as applicationApi from '../api/applicationApi';
 
 const StudentApplication = () => {
-  const { user } = useAuth();
+  const { user } = useAuth(); // Now contains full details from login
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form State
+  console.log('User Profile:', user);
+
+  // Initialize form with User Profile Data
   const [formData, setFormData] = useState({
-    // --- 1. Identity & Contact ---
-    indexNumber: '',
-    fullName: '',
-    nameWithInitials: '',
-    permanentAddress: '',
-    residentPhone: '',
-    mobilePhone: '',
+    // --- 1. Identity & Contact (PRE-FILLED) ---
+    indexNumber: user?.indexNumber || '',
+    fullName: user?.fullName || '',
+    nameWithInitials: user?.nameWithInitials || '',
+    permanentAddress: user?.permanentAddress || '',
+    residentPhone: user?.residentPhone || '',
+    mobilePhone: user?.mobilePhone || '',
     email: user?.email || '',
-    gender: 'male',
+    gender: user?.gender || 'male',
 
     // --- 2. Residence ---
     district: 'Colombo',
     closestTown: '',
     distanceToTown: '', 
     distance: '',       
-    walkingDistance: '', // NEW
+    walkingDistance: '', 
 
     // --- 3. Academic ---
     faculty: '',
     department: '',
     year: 'first_year',
     misconduct: 'no',
-
-    // --- 4. Financial / Bursary ---
+    
+    // --- Financial ---
     isMahapolaRecipient: 'no', 
-    bursaryAmount: '',
+    bursaryAmount: '', 
 
-    // --- 5. Siblings (Detailed) ---
+    // --- 4. Family ---
+    motherAlive: 'yes',
+    motherName: '', motherAge: '', motherOccupation: '', motherIncome: '',
+    fatherAlive: 'yes',
+    fatherName: '', fatherAge: '', fatherOccupation: '', fatherIncome: '',
+    guardianAlive: 'no',
+    guardianName: '', guardianAge: '', guardianOccupation: '', guardianIncome: '',
+    
+    incomeRange: 'below_100k', 
+    isSamurdhiRecipient: 'no', 
+    parentDisability: 'no', 
+
+    // --- 5. Siblings ---
     siblingsSchool: '0', 
     siblingsUni: '0',
-    // We will map these dynamically in UI, but keep flat state for simplicity
     sibling1Name: '', sibling1Type: 'School', sibling1Info: '',
     sibling2Name: '', sibling2Type: 'School', sibling2Info: '',
     sibling3Name: '', sibling3Type: 'School', sibling3Info: '',
     siblingDisability: 'no',
 
-    // --- 6. Family Income & Parents (Detailed) ---
-    motherAlive: 'yes',
-    motherName: '', motherAge: '', motherOccupation: '', motherIncome: '',
-    
-    fatherAlive: 'yes',
-    fatherName: '', fatherAge: '', fatherOccupation: '', fatherIncome: '',
-    
-    guardianAlive: 'no',
-    guardianName: '', guardianAge: '', guardianOccupation: '', guardianIncome: '',
-    
-    incomeRange: 'below_100k', // Kept for point calculation logic
-    isSamurdhiRecipient: 'no', 
-    parentDisability: 'no', 
-
-    // --- 7. Emergency Contact (NEW) ---
+    // --- 6. Emergency ---
     emergencyName: '',
     emergencyAddress: '',
     emergencyMobile: '',
     emergencyResidence: '',
 
-    // --- 8. Extra Curricular (Detailed) ---
-    isCaptain: 'no', 
-    captainTeam: '', captainYear: '',
-    isMember: 'no',  
-    memberTeam: '', memberYear: '',
-    hasColours: 'no', 
-    coloursDetails: '',
+    // --- 7. Extra Curricular ---
+    isCaptain: 'no', captainTeam: '', captainYear: '',
+    isMember: 'no',  memberTeam: '', memberYear: '',
+    hasColours: 'no', coloursDetails: '',
 
-    // --- 9. Submission ---
+    // --- 8. Submission ---
     specialReasons: '',
     hostelPref: '',
 
     // --- FILES ---
-    file_residence: null,
-    file_income: null,
-    file_siblings: null,
-    file_siblingMedical: null,
-    file_parentDeath: null,
-    file_parentMedical: null,
-    file_samurdhi: null,
-    file_sports: null,
-    file_special: null
+    file_residence: null, file_income: null, file_siblings: null,
+    file_siblingMedical: null, file_parentDeath: null, file_parentMedical: null,
+    file_samurdhi: null, file_sports: null, file_special: null
   });
 
   useEffect(() => {
@@ -98,7 +88,7 @@ const StudentApplication = () => {
   const loadMyApplication = async () => {
     try {
       const data = await applicationApi.getMyApplicationAPI(user.id);
-      setApplication(data);
+      if (data) setApplication(data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -153,7 +143,6 @@ const StudentApplication = () => {
     return ['General Hostel']; 
   };
 
-  // Helper to calculate total siblings for display logic
   const totalSiblings = parseInt(formData.siblingsSchool || 0) + parseInt(formData.siblingsUni || 0);
 
   if (loading) return <div className="p-8 text-center">Loading status...</div>;
@@ -178,7 +167,7 @@ const StudentApplication = () => {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
           
-          {/* --- SECTION 1: IDENTITY --- */}
+          {/* --- SECTION 1: IDENTITY (Pre-filled mostly) --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">1. Personal Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -220,7 +209,11 @@ const StudentApplication = () => {
             </div>
           </div>
 
-          {/* --- SECTION 2: RESIDENCE --- */}
+          {/* ... (Keep Sections 2 - 8 exactly as they were in the previous step) ... */}
+          {/* I will omit repeating Sections 2-8 here to save space, assuming they remain unchanged from the previous file content I generated. 
+              The key change is the initial state in useState and the rendering of Section 1 above. */}
+          
+          {/* Re-inserting Section 2 just to ensure context continuity if you copy-paste the whole block */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">2. Residence Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -232,7 +225,6 @@ const StudentApplication = () => {
                         <option value="Kandy">Kandy</option>
                         <option value="Galle">Galle</option>
                         <option value="Matara">Matara</option>
-                        {/* Add others */}
                     </select>
                  </div>
                  <div>
@@ -255,7 +247,10 @@ const StudentApplication = () => {
             <FileInput name="file_residence" label="Grama Niladhari Certificate" required />
           </div>
 
-          {/* --- SECTION 3: ACADEMIC --- */}
+          {/* ... (Include Sections 3, 4, 5, 6, 7, 8 from previous response) ... */}
+          {/* For brevity, please refer to the complete file content in the previous step for Sections 3-8 as they don't change logic, only data entry */ }
+          
+           {/* --- SECTION 3: ACADEMIC --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">3. Academic Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -281,21 +276,33 @@ const StudentApplication = () => {
                 <label className="block text-sm font-medium mb-1 dark:text-slate-300">Have you been punished/warned for misconduct?</label>
                 <input type="text" name="misconduct" placeholder="If yes, give details. If no, type 'No'" required value={formData.misconduct} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
             </div>
+
+            <div className="mt-4">
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">Are you a recipient of a Mahapola/Bursary/Any other student grant?</label>
+                <select name="isMahapolaRecipient" value={formData.isMahapolaRecipient} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+            {formData.isMahapolaRecipient === 'yes' && (
+                <div className="mt-4 animate-fade-in">
+                    <label className="block text-sm font-medium mb-1 dark:text-slate-300">If Yes, please state amount (per Month) (Rs.)</label>
+                    <input type="number" name="bursaryAmount" value={formData.bursaryAmount} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                </div>
+            )}
           </div>
 
-          {/* --- SECTION 4: FAMILY & INCOME --- */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
+          {/* ... Remaining sections ... */}
+           {/* --- SECTION 4: FAMILY & INCOME --- */}
+           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">4. Family & Income</h2>
-            
             {/* MOTHER */}
             <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                     <h3 className="font-bold text-slate-700 dark:text-slate-300">Mother</h3>
                     <label className="text-sm dark:text-slate-400 flex items-center gap-2">
                         Alive?
-                        <select name="motherAlive" value={formData.motherAlive} onChange={handleChange} className="p-1 border rounded text-xs">
-                            <option value="yes">Yes</option><option value="no">No</option>
-                        </select>
+                        <select name="motherAlive" value={formData.motherAlive} onChange={handleChange} className="p-1 border rounded text-xs"><option value="yes">Yes</option><option value="no">No</option></select>
                     </label>
                 </div>
                 {formData.motherAlive === 'yes' && (
@@ -307,16 +314,13 @@ const StudentApplication = () => {
                     </div>
                 )}
             </div>
-
             {/* FATHER */}
             <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                     <h3 className="font-bold text-slate-700 dark:text-slate-300">Father</h3>
                     <label className="text-sm dark:text-slate-400 flex items-center gap-2">
                         Alive?
-                        <select name="fatherAlive" value={formData.fatherAlive} onChange={handleChange} className="p-1 border rounded text-xs">
-                            <option value="yes">Yes</option><option value="no">No</option>
-                        </select>
+                        <select name="fatherAlive" value={formData.fatherAlive} onChange={handleChange} className="p-1 border rounded text-xs"><option value="yes">Yes</option><option value="no">No</option></select>
                     </label>
                 </div>
                 {formData.fatherAlive === 'yes' && (
@@ -328,12 +332,9 @@ const StudentApplication = () => {
                     </div>
                 )}
             </div>
-
-             {/* GUARDIAN */}
-             <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-300">Guardian (if applicable)</h3>
-                </div>
+            {/* GUARDIAN */}
+            <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-2">Guardian (if applicable)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input name="guardianName" placeholder="Name" value={formData.guardianName} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
                     <input name="guardianAge" placeholder="Age" type="number" value={formData.guardianAge} onChange={handleChange} className="p-2 border rounded dark:bg-slate-800 dark:border-slate-600" />
@@ -342,7 +343,6 @@ const StudentApplication = () => {
                 </div>
             </div>
             
-            {/* Income Range Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Annual Family Income Range</label>
@@ -361,52 +361,36 @@ const StudentApplication = () => {
                     </select>
                 </div>
             </div>
-
             <FileInput name="file_income" label="Salary Statement / Income Cert" required />
-            {(formData.motherAlive === 'no' || formData.fatherAlive === 'no') && (
-                <FileInput name="file_parentDeath" label="Death Certificate(s)" required />
-            )}
-            {formData.isSamurdhiRecipient === 'yes' && (
-                <FileInput name="file_samurdhi" label="Copy of Samurdhi Card" required />
-            )}
+            {(formData.motherAlive === 'no' || formData.fatherAlive === 'no') && <FileInput name="file_parentDeath" label="Death Certificate(s)" required />}
+            {formData.isSamurdhiRecipient === 'yes' && <FileInput name="file_samurdhi" label="Copy of Samurdhi Card" required />}
           </div>
 
           {/* --- SECTION 5: SIBLINGS --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">5. Siblings (Students)</h2>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Siblings in School</label>
-                    <select name="siblingsSchool" value={formData.siblingsSchool} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                        <option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3 or more</option>
-                    </select>
+                    <select name="siblingsSchool" value={formData.siblingsSchool} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"><option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3 or more</option></select>
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Siblings in University</label>
-                    <select name="siblingsUni" value={formData.siblingsUni} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                        <option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3 or more</option>
-                    </select>
+                    <select name="siblingsUni" value={formData.siblingsUni} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"><option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3 or more</option></select>
                  </div>
             </div>
-
-            {/* Dynamic Sibling Fields based on Count */}
             {totalSiblings > 0 && (
                 <div className="space-y-4 mb-4 bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
                     <p className="text-sm font-bold text-slate-500 uppercase">Sibling Details</p>
                     {[...Array(Math.min(3, totalSiblings))].map((_, i) => (
                         <div key={i} className="grid grid-cols-3 gap-2">
                              <input name={`sibling${i+1}Name`} placeholder={`Sibling ${i+1} Name`} onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-600" />
-                             <select name={`sibling${i+1}Type`} onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-600">
-                                <option value="School">School</option>
-                                <option value="University">University</option>
-                             </select>
+                             <select name={`sibling${i+1}Type`} onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-600"><option value="School">School</option><option value="University">University</option></select>
                              <input name={`sibling${i+1}Info`} placeholder="Grade / Year" onChange={handleChange} className="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-600" />
                         </div>
                     ))}
                 </div>
             )}
-
             {(totalSiblings > 0) && <FileInput name="file_siblings" label="Student Letters (Principal/Registrar)" required />}
           </div>
 
@@ -427,8 +411,7 @@ const StudentApplication = () => {
             <div className="space-y-4">
                 <div className="p-3 border rounded dark:border-slate-600">
                     <label className="flex items-center gap-2 font-medium dark:text-slate-300 mb-2">
-                        <input type="checkbox" checked={formData.isCaptain === 'yes'} onChange={e => setFormData({...formData, isCaptain: e.target.checked ? 'yes' : 'no'})} /> 
-                        Are you a University Team Captain?
+                        <input type="checkbox" checked={formData.isCaptain === 'yes'} onChange={e => setFormData({...formData, isCaptain: e.target.checked ? 'yes' : 'no'})} /> Are you a University Team Captain?
                     </label>
                     {formData.isCaptain === 'yes' && (
                         <div className="grid grid-cols-2 gap-4 pl-6">
@@ -437,11 +420,9 @@ const StudentApplication = () => {
                         </div>
                     )}
                 </div>
-
                 <div className="p-3 border rounded dark:border-slate-600">
                     <label className="flex items-center gap-2 font-medium dark:text-slate-300 mb-2">
-                        <input type="checkbox" checked={formData.isMember === 'yes'} onChange={e => setFormData({...formData, isMember: e.target.checked ? 'yes' : 'no'})} /> 
-                        Are you a University Team Member?
+                        <input type="checkbox" checked={formData.isMember === 'yes'} onChange={e => setFormData({...formData, isMember: e.target.checked ? 'yes' : 'no'})} /> Are you a University Team Member?
                     </label>
                     {formData.isMember === 'yes' && (
                         <div className="grid grid-cols-2 gap-4 pl-6">
@@ -450,40 +431,30 @@ const StudentApplication = () => {
                         </div>
                     )}
                 </div>
-                
                 <div className="p-3 border rounded dark:border-slate-600">
                      <label className="flex items-center gap-2 font-medium dark:text-slate-300">
-                        <input type="checkbox" checked={formData.hasColours === 'yes'} onChange={e => setFormData({...formData, hasColours: e.target.checked ? 'yes' : 'no'})} /> 
-                        Have you won any University Colors?
+                        <input type="checkbox" checked={formData.hasColours === 'yes'} onChange={e => setFormData({...formData, hasColours: e.target.checked ? 'yes' : 'no'})} /> Have you won any University Colors?
                     </label>
                 </div>
-
-                {(formData.isCaptain === 'yes' || formData.isMember === 'yes' || formData.hasColours === 'yes') && (
-                    <FileInput name="file_sports" label="Sports Certificates" required />
-                )}
+                {(formData.isCaptain === 'yes' || formData.isMember === 'yes' || formData.hasColours === 'yes') && <FileInput name="file_sports" label="Sports Certificates" required />}
             </div>
           </div>
 
           {/* --- SECTION 8: SUBMISSION --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">8. Final Submission</h2>
-            
             <div className="mb-4">
                  <label className="block text-sm font-medium mb-1 dark:text-slate-300">Special Reasons (Optional)</label>
                  <textarea name="specialReasons" value={formData.specialReasons} onChange={handleChange} rows="3" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"></textarea>
                  {formData.specialReasons && <FileInput name="file_special" label="Supporting Documents" />}
             </div>
-
             <div className="mb-6">
                <label className="block text-sm font-medium mb-1 dark:text-slate-300">Preferred Hostel</label>
                <select name="hostelPref" value={formData.hostelPref} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
                   <option value="">-- Select Preference --</option>
-                  {getHostelOptions().map(hostel => (
-                     <option key={hostel} value={hostel}>{hostel}</option>
-                  ))}
+                  {getHostelOptions().map(hostel => (<option key={hostel} value={hostel}>{hostel}</option>))}
                </select>
             </div>
-
             <button type="submit" disabled={submitting} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition disabled:opacity-50">
                 {submitting ? 'Submitting...' : 'Submit Application'}
             </button>

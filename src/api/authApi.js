@@ -1,3 +1,4 @@
+// src/api/authApi.js
 import { MOCK_USERS, generateMockJWT } from '../utils/mockDB';
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -11,9 +12,10 @@ export const loginAPI = async (email, password) => {
     throw new Error("Invalid credentials");
   }
 
-  // Return what a real backend would return: user info + access token
+  // FIXED: Return the FULL user object using the spread operator
+  // This ensures indexNumber, address, etc., are passed to the frontend
   return {
-    user: { id: user.id, email: user.email, role: user.role, name: user.name },
+    user: { ...user },
     token: generateMockJWT(user),
   };
 };
@@ -22,13 +24,12 @@ export const loginAPI = async (email, password) => {
 export const verifyTokenAPI = async (token) => {
   await delay(300);
   try {
-    // In a real app, the backend verifies the signature. 
-    // Here we just decode our fake payload.
     const payload = JSON.parse(atob(token.split('.')[1]));
     
     if (Date.now() > payload.exp) throw new Error("Token expired");
     
-    return { id: payload.id, email: payload.email, role: payload.role, name: payload.name };
+    // FIXED: Return the full payload instead of picking specific fields
+    return { ...payload };
   } catch (e) {
     throw new Error("Invalid token");
   }

@@ -1,6 +1,7 @@
 // src/utils/mockDB.js
 
-// --- PERMISSIONS CONFIGURATION ---
+// ... (Keep ROLE_PERMISSIONS as is)
+
 export const ROLE_PERMISSIONS = {
   admin: {
     canViewUsers: true,
@@ -10,8 +11,8 @@ export const ROLE_PERMISSIONS = {
     canBulkUpload: true,
     canViewHostelStats: true,
     canViewHostelDetails: true,
-    canManageTenants: true, // Admin can assign/remove students
-    canCreateRoom: true,    // Admin can create new rooms
+    canManageTenants: true, 
+    canCreateRoom: true,    
     canViewApplications: true,
     canProcessApplications: true,
     canApplyHostel: false,
@@ -25,8 +26,8 @@ export const ROLE_PERMISSIONS = {
     canBulkUpload: false,
     canViewHostelStats: true,
     canViewHostelDetails: true,
-    canManageTenants: true, // Staff can assign/remove students
-    canCreateRoom: false,   // Staff CANNOT create rooms
+    canManageTenants: true, 
+    canCreateRoom: false,   
     canViewApplications: true,
     canProcessApplications: true,
     canApplyHostel: false,
@@ -61,7 +62,21 @@ export const MOCK_USERS = [
   { id: 1, email: "admin@uom.local", password: "123", role: "admin", name: "Principal Skinner" },
   { id: 2, email: "counselor@uom.local", password: "123", role: "counselor", name: "Mr. Mackey" },
   { id: 3, email: "staff@uom.local", password: "123", role: "staff", name: "Groundskeeper Willie" },
-  { id: 4, email: "student@uom.local", password: "123", role: "student", name: "Bart Simpson" },
+  { 
+    id: 4, 
+    email: "student@uom.local", 
+    password: "123", 
+    role: "student", 
+    name: "Bart Simpson",
+    // --- ADDED DATA FOR BART ---
+    indexNumber: 'ST-2024-004',
+    fullName: 'Bartholomew JoJo Simpson',
+    nameWithInitials: 'B. J. Simpson',
+    permanentAddress: '742 Evergreen Terrace, Springfield',
+    residentPhone: '0112345678',
+    mobilePhone: '0777123456',
+    gender: 'male'
+  },
   { id: 5, email: "milhouse@uom.local", password: "123", role: "student", name: "Milhouse Van Houten" },
   { id: 6, email: "nelson@uom.local", password: "123", role: "student", name: "Nelson Muntz" },
   { id: 7, email: "ralph@uom.local", password: "123", role: "student", name: "Ralph Wiggum" },
@@ -69,33 +84,30 @@ export const MOCK_USERS = [
 ];
 
 export const generateMockJWT = (user) => {
+  // We include the entire user object in the token payload
   const payload = JSON.stringify({ ...user, exp: Date.now() + 3600000 }); 
   return `fake-jwt-header.${btoa(payload)}.fake-signature`;
 };
 
-// Rooms (Updated with 'hostel' field)
+// ... (Keep the rest of the file: MOCK_HOSTEL_ROOMS, MOCK_ALLOCATIONS, etc.)
+// Rooms
 export let MOCK_HOSTEL_ROOMS = [
-  // Men's Hostel A
   { id: 101, hostel: "Men's Hostel A", floor: 1, number: "101", capacity: 2, type: "Double" },
   { id: 102, hostel: "Men's Hostel A", floor: 1, number: "102", capacity: 2, type: "Double" },
   { id: 201, hostel: "Men's Hostel A", floor: 2, number: "201", capacity: 1, type: "Single" },
-  
-  // Women's Hostel B
   { id: 301, hostel: "Women's Hostel B", floor: 1, number: "101", capacity: 2, type: "Double" },
   { id: 302, hostel: "Women's Hostel B", floor: 1, number: "102", capacity: 4, type: "Dorm" },
 ];
 
-// Allocations
 export let MOCK_ALLOCATIONS = [
   { id: 1, userId: 4, roomId: 101, startDate: "2024-01-15", endDate: "2024-12-15" }, 
 ];
 
-// Applications
 export let MOCK_APPLICATIONS = [
   { 
     id: 1, 
     userId: 5, 
-    status: 'approved', // Changed to 'approved' so Milhouse appears in "Eligible Students" list
+    status: 'approved',
     points: 85,
     submissionDate: '2024-02-10',
     fullName: "Milhouse Van Houten", 
@@ -112,10 +124,10 @@ export let MOCK_APPLICATIONS = [
     department: 'Software',
     year: 'first_year',
     misconduct: 'no',
-    incomeRange: 'below_100k',
-    isSamurdhiRecipient: 'no',
     isMahapolaRecipient: 'yes',
     bursaryAmount: '5000',
+    incomeRange: 'below_100k',
+    isSamurdhiRecipient: 'no',
     motherAlive: 'yes',
     fatherAlive: 'yes',
     siblingsSchool: 1,
@@ -136,7 +148,6 @@ export let MOCK_APPLICATIONS = [
   }
 ];
 
-// --- TICKETS ---
 export let MOCK_TICKETS = [
   {
     id: 101,
