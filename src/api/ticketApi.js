@@ -30,7 +30,8 @@ export const getCounselorTicketsAPI = async (counselorId) => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 };
 
-export const createTicketAPI = async (studentId, counselorId, subject, initialMessage) => {
+// UPDATED: Accepts 'attachment'
+export const createTicketAPI = async (studentId, counselorId, subject, initialMessage, attachment = null) => {
   await delay(500);
   
   const newTicket = {
@@ -43,6 +44,7 @@ export const createTicketAPI = async (studentId, counselorId, subject, initialMe
       { 
         senderId: parseInt(studentId), 
         text: initialMessage, 
+        attachment: attachment ? attachment.name : null, // Store filename
         timestamp: new Date().toLocaleString() 
       }
     ],
@@ -53,7 +55,8 @@ export const createTicketAPI = async (studentId, counselorId, subject, initialMe
   return hydrateTicket(newTicket);
 };
 
-export const replyToTicketAPI = async (ticketId, senderId, message) => {
+// UPDATED: Accepts 'attachment'
+export const replyToTicketAPI = async (ticketId, senderId, message, attachment = null) => {
   await delay(300);
   const ticket = MOCK_TICKETS.find(t => t.id === ticketId);
   if (!ticket) throw new Error("Ticket not found");
@@ -61,6 +64,7 @@ export const replyToTicketAPI = async (ticketId, senderId, message) => {
   ticket.messages.push({
     senderId: parseInt(senderId),
     text: message,
+    attachment: attachment ? attachment.name : null, // Store filename
     timestamp: new Date().toLocaleString()
   });
 

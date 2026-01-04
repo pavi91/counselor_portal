@@ -10,6 +10,7 @@ const CounselorTickets = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [replyText, setReplyText] = useState('');
+  const [attachment, setAttachment] = useState(null); // State for reply attachment
 
   useEffect(() => {
     loadTickets();
@@ -29,10 +30,11 @@ const CounselorTickets = () => {
 
   const handleReply = async (e) => {
     e.preventDefault();
-    if (!replyText.trim()) return;
+    if (!replyText.trim() && !attachment) return;
     try {
-      await ticketApi.replyToTicketAPI(selectedTicket.id, user.id, replyText);
+      await ticketApi.replyToTicketAPI(selectedTicket.id, user.id, replyText, attachment);
       setReplyText('');
+      setAttachment(null);
       
       // Refresh data
       const updatedTickets = await ticketApi.getCounselorTicketsAPI(user.id);
@@ -120,6 +122,13 @@ const CounselorTickets = () => {
                           : 'bg-slate-100 dark:bg-slate-700 dark:text-white rounded-bl-none'
                       }`}>
                          <p className="text-sm">{msg.text}</p>
+                         {/* Render Attachment Link */}
+                         {msg.attachment && (
+                            <div className={`mt-2 p-2 rounded text-xs flex items-center gap-2 ${isMe ? 'bg-blue-700' : 'bg-white dark:bg-slate-600'}`}>
+                                <span className="text-lg">📎</span>
+                                <span className="font-mono truncate max-w-[150px]">{msg.attachment}</span>
+                            </div>
+                         )}
                          <p className={`text-[10px] mt-1 opacity-70 ${isMe ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400'}`}>
                             {msg.timestamp}
                          </p>
@@ -131,7 +140,20 @@ const CounselorTickets = () => {
 
             {/* Reply Area */}
             <div className="p-4 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-               <form onSubmit={handleReply} className="flex gap-2">
+               <form onSubmit={handleReply} className="flex gap-2 items-end">
+                 {/* File Input Trigger (Simplified for UI) */}
+                 <div className="relative">
+                    <label className="cursor-pointer p-2.5 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-white transition flex items-center justify-center">
+                        <span className="text-lg">📎</span>
+                        <input type="file" className="hidden" onChange={(e) => setAttachment(e.target.files[0])} disabled={selectedTicket.status === 'closed'} />
+                    </label>
+                    {attachment && (
+                        <div className="absolute bottom-full mb-2 left-0 w-max bg-slate-800 text-white text-xs p-1 rounded shadow-lg">
+                            {attachment.name} <button type="button" onClick={(e) => { e.preventDefault(); setAttachment(null); }} className="ml-1 text-red-400">×</button>
+                        </div>
+                    )}
+                 </div>
+
                  <input 
                    type="text" 
                    value={replyText}
@@ -142,7 +164,7 @@ const CounselorTickets = () => {
                  />
                  <button 
                     type="submit" 
-                    disabled={selectedTicket.status === 'closed' || !replyText.trim()}
+                    disabled={selectedTicket.status === 'closed' || (!replyText.trim() && !attachment)}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white px-4 py-2 rounded-lg font-bold transition"
                  >
                     Send

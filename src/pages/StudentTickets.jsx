@@ -13,7 +13,7 @@ const StudentTickets = () => {
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ counselorId: '', subject: '', message: '' });
+  const [formData, setFormData] = useState({ counselorId: '', subject: '', message: '', attachment: null });
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
@@ -23,16 +23,12 @@ const StudentTickets = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch user's tickets
       const myTickets = await ticketApi.getStudentTicketsAPI(user.id);
       setTickets(myTickets);
 
-      // 2. Fetch counselors for the "New Ticket" dropdown
-      // We assume userApi.getUsersAPI returns all users, filter by role manually
       const allUsers = await userApi.getUsersAPI(); 
       const counselorList = allUsers.filter(u => u.role === 'counselor');
       setCounselors(counselorList);
-
     } catch (e) {
       console.error(e);
     } finally {
@@ -40,14 +36,27 @@ const StudentTickets = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setFormData({ ...formData, attachment: e.target.files[0] });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
     try {
-      await ticketApi.createTicketAPI(user.id, formData.counselorId, formData.subject, formData.message);
+      // Pass the attachment to the API
+      await ticketApi.createTicketAPI(
+          user.id, 
+          formData.counselorId, 
+          formData.subject, 
+          formData.message,
+          formData.attachment
+      );
       setIsModalOpen(false);
-      setFormData({ counselorId: '', subject: '', message: '' });
-      loadData(); // Refresh list to show new ticket
+      setFormData({ counselorId: '', subject: '', message: '', attachment: null });
+      loadData(); 
     } catch (err) {
       alert("Failed to create ticket");
     } finally {
@@ -80,24 +89,31 @@ const StudentTickets = () => {
            </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {tickets.map(ticket => (
-              <div key={ticket.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
-                <div className="flex justify-between items-start mb-2">
-                   <h3 className="font-bold text-lg dark:text-white text-blue-600">{ticket.subject}</h3>
-                   <span className={`px-2 py-1 rounded text-xs font-bold uppercase
-                      ${ticket.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {ticket.status}
-                   </span>
-                </div>
-                <p className="text-sm text-slate-500 mb-4">To: <span className="font-semibold dark:text-slate-300">{ticket.counselorName}</span> • {ticket.createdAt}</p>
-                
-                {/* Latest Message Preview */}
-                <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg text-sm dark:text-slate-300 border dark:border-slate-700">
-                  <span className="font-bold text-slate-600 dark:text-slate-400">Latest: </span>
-                  {ticket.messages[ticket.messages.length - 1].text}
-                </div>
-              </div>
-            ))}
+            {tickets.map(ticket => {
+                const lastMsg = ticket.messages[ticket.messages.length - 1];
+                return (
+                  <div key={ticket.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-bold text-lg dark:text-white text-blue-600">{ticket.subject}</h3>
+                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase
+                          ${ticket.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                          {ticket.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500 mb-4">To: <span className="font-semibold dark:text-slate-300">{ticket.counselorName}</span> • {ticket.createdAt}</p>
+                    
+                    {/* Latest Message Preview */}
+                    <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg text-sm dark:text-slate-300 border dark:border-slate-700 flex justify-between items-center">
+                      <span><span className="font-bold text-slate-600 dark:text-slate-400">Latest: </span> {lastMsg.text}</span>
+                      {lastMsg.attachment && (
+                          <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded flex items-center gap-1">
+                              📎 {lastMsg.attachment}
+                          </span>
+                      )}
+                    </div>
+                  </div>
+                );
+            })}
           </div>
         )}
       </div>
@@ -145,6 +161,16 @@ const StudentTickets = () => {
                   className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"
                   placeholder="Describe your issue..."
                 ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">Attachment (Optional)</label>
+                <input 
+                  type="file" 
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200"
+                />
+                {formData.attachment && <p className="text-xs text-green-600 mt-1">Selected: {formData.attachment.name}</p>}
               </div>
 
               <div className="flex gap-3 pt-2">
