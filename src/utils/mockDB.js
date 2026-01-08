@@ -1,6 +1,6 @@
 // src/utils/mockDB.js
 
-// ... (Keep ROLE_PERMISSIONS as is)
+// --- ROLE PERMISSIONS ---
 
 export const ROLE_PERMISSIONS = {
   admin: {
@@ -11,12 +11,13 @@ export const ROLE_PERMISSIONS = {
     canBulkUpload: true,
     canViewHostelStats: true,
     canViewHostelDetails: true,
-    canManageTenants: true, 
-    canCreateRoom: true,    
+    canManageTenants: true,
+    canCreateRoom: true,
     canViewApplications: true,
     canProcessApplications: true,
     canApplyHostel: false,
     canViewTickets: true,
+    canManageRoleRequests: true,
   },
   staff: {
     canViewUsers: true,
@@ -26,12 +27,13 @@ export const ROLE_PERMISSIONS = {
     canBulkUpload: false,
     canViewHostelStats: true,
     canViewHostelDetails: true,
-    canManageTenants: true, 
-    canCreateRoom: false,   
+    canManageTenants: true,
+    canCreateRoom: false,
     canViewApplications: true,
     canProcessApplications: true,
     canApplyHostel: false,
     canViewTickets: false,
+    canRequestCounselorRole: true,
   },
   counselor: {
     canViewUsers: true,
@@ -56,41 +58,87 @@ export const ROLE_PERMISSIONS = {
   }
 };
 
-// --- DATA ---
+// --- USERS ---
 
 export const MOCK_USERS = [
-  { id: 1, email: "admin@uom.local", password: "123", role: "admin", name: "Principal Skinner" },
-  { id: 2, email: "counselor@uom.local", password: "123", role: "counselor", name: "Mr. Mackey" },
-  { id: 3, email: "staff@uom.local", password: "123", role: "staff", name: "Groundskeeper Willie" },
-  { 
-    id: 4, 
-    email: "student@uom.local", 
-    password: "123", 
-    role: "student", 
-    name: "Bart Simpson",
-    // --- ADDED DATA FOR BART ---
-    indexNumber: 'ST-2024-004',
-    fullName: 'Bartholomew JoJo Simpson',
-    nameWithInitials: 'B. J. Simpson',
-    permanentAddress: '742 Evergreen Terrace, Springfield',
-    residentPhone: '0112345678',
-    mobilePhone: '0777123456',
-    gender: 'male'
+  {
+    id: 1,
+    email: "admin@uom.local",
+    password: "123",
+    role: "admin",
+    name: "Saman Perera"
   },
-  { id: 5, email: "milhouse@uom.local", password: "123", role: "student", name: "Milhouse Van Houten" },
-  { id: 6, email: "nelson@uom.local", password: "123", role: "student", name: "Nelson Muntz" },
-  { id: 7, email: "ralph@uom.local", password: "123", role: "student", name: "Ralph Wiggum" },
-  { id: 8, email: "martin@uom.local", password: "123", role: "student", name: "Martin Prince" },
+  {
+    id: 2,
+    email: "counselor@uom.local",
+    password: "123",
+    role: "counselor",
+    name: "Dr. Nirosha Bandara"
+  },
+  {
+    id: 3,
+    email: "staff@uom.local",
+    password: "123",
+    role: "staff",
+    name: "Sunil Jayasinghe"
+  },
+  {
+    id: 4,
+    email: "student@uom.local",
+    password: "123",
+    role: "student",
+    name: "Kasun Wijeratne",
+
+    indexNumber: "ST-2024-004",
+    fullName: "Kasun Chathuranga Wijeratne",
+    nameWithInitials: "K. C. Wijeratne",
+    permanentAddress: "No. 45, Temple Road, Kandy",
+    residentPhone: "0812233445",
+    mobilePhone: "0777123456",
+    gender: "male"
+  },
+  {
+    id: 5,
+    email: "amal@uom.local",
+    password: "123",
+    role: "student",
+    name: "Amal Fernando"
+  },
+  {
+    id: 6,
+    email: "nuwan@uom.local",
+    password: "123",
+    role: "student",
+    name: "Nuwan Silva"
+  },
+  {
+    id: 7,
+    email: "tharindu@uom.local",
+    password: "123",
+    role: "student",
+    name: "Tharindu Kumara"
+  },
+  {
+    id: 8,
+    email: "dinithi@uom.local",
+    password: "123",
+    role: "student",
+    name: "Dinithi Abeysekera"
+  }
 ];
 
+// --- JWT MOCK ---
+
 export const generateMockJWT = (user) => {
-  // We include the entire user object in the token payload
-  const payload = JSON.stringify({ ...user, exp: Date.now() + 3600000 }); 
+  const payload = JSON.stringify({
+    ...user,
+    exp: Date.now() + 3600000
+  });
   return `fake-jwt-header.${btoa(payload)}.fake-signature`;
 };
 
-// ... (Keep the rest of the file: MOCK_HOSTEL_ROOMS, MOCK_ALLOCATIONS, etc.)
-// Rooms
+// --- HOSTEL ROOMS ---
+
 export let MOCK_HOSTEL_ROOMS = [
   { id: 101, hostel: "Men's Hostel A", floor: 1, number: "101", capacity: 2, type: "Double" },
   { id: 102, hostel: "Men's Hostel A", floor: 1, number: "102", capacity: 2, type: "Double" },
@@ -99,66 +147,107 @@ export let MOCK_HOSTEL_ROOMS = [
   { id: 302, hostel: "Women's Hostel B", floor: 1, number: "102", capacity: 4, type: "Dorm" },
 ];
 
+// --- ALLOCATIONS ---
+
 export let MOCK_ALLOCATIONS = [
-  { id: 1, userId: 4, roomId: 101, startDate: "2024-01-15", endDate: "2024-12-15" }, 
+  {
+    id: 1,
+    userId: 4,
+    roomId: 101,
+    startDate: "2024-01-15",
+    endDate: "2024-12-15"
+  }
 ];
 
+// --- APPLICATIONS ---
+
 export let MOCK_APPLICATIONS = [
-  { 
-    id: 1, 
-    userId: 5, 
-    status: 'approved',
+  {
+    id: 1,
+    userId: 5,
+    status: "approved",
     points: 85,
-    submissionDate: '2024-02-10',
-    fullName: "Milhouse Van Houten", 
+    submissionDate: "2024-02-10",
+
+    fullName: "Amal Sachintha Fernando",
     indexNumber: "ST-2024-001",
-    permanentAddress: "742 Evergreen Terrace, Springfield",
-    email: "milhouse@school.com",
-    gender: 'male',
+    permanentAddress: "No. 12, Lake Road, Galle",
+    email: "amal@student.uom.lk",
+    gender: "male",
     mobilePhone: "0771234567",
-    district: 'Springfield',
-    closestTown: 'Downtown',
-    distanceToTown: 5,
-    distance: 120, 
-    faculty: 'Engineering',
-    department: 'Software',
-    year: 'first_year',
-    misconduct: 'no',
-    isMahapolaRecipient: 'yes',
-    bursaryAmount: '5000',
-    incomeRange: 'below_100k',
-    isSamurdhiRecipient: 'no',
-    motherAlive: 'yes',
-    fatherAlive: 'yes',
+    district: "Galle",
+    closestTown: "Galle Town",
+    distanceToTown: 4,
+    distance: 120,
+    faculty: "Engineering",
+    department: "Software",
+    year: "first_year",
+
+    misconduct: "no",
+    isMahapolaRecipient: "yes",
+    bursaryAmount: "5000",
+    incomeRange: "below_100k",
+    isSamurdhiRecipient: "no",
+
+    motherAlive: "yes",
+    fatherAlive: "yes",
     siblingsSchool: 1,
     siblingsUni: 0,
-    isCaptain: 'no',
-    isMember: 'yes',
-    memberTeam: 'Debate Team',
-    hasColours: 'no',
-    hostelPref: 'First Lane',
-    emergencyName: 'Kirk Van Houten',
-    emergencyMobile: '0711112222',
-    emergencyAddress: 'Same as permanent',
-    file_residence: "gn_certificate_milhouse.pdf",
-    file_income: "dad_salary_slip.png",
-    file_siblings: "school_letter_lisa.jpg",
+
+    isCaptain: "no",
+    isMember: "yes",
+    memberTeam: "Debate Team",
+    hasColours: "no",
+
+    hostelPref: "First Lane",
+
+    emergencyName: "Somapala Fernando",
+    emergencyMobile: "0711112222",
+    emergencyAddress: "Same as permanent",
+
+    file_residence: "gn_certificate_amal.pdf",
+    file_income: "salary_slip_father.png",
+    file_siblings: "school_letter_sibling.jpg",
     file_samurdhi: null,
     file_sports: "debate_team_membership.pdf"
   }
 ];
 
+// --- TICKETS ---
+
 export let MOCK_TICKETS = [
   {
     id: 101,
-    studentId: 4, 
-    counselorId: 2, 
-    subject: "Feeling overwhelmed",
-    status: "open", 
+    studentId: 4,
+    counselorId: 2,
+    subject: "Academic stress",
+    status: "open",
     messages: [
-      { senderId: 4, text: "I have too much homework and don't know where to start.", timestamp: "2024-03-10 09:00" },
-      { senderId: 2, text: "It's okay, Bart. Let's break it down. What's due first?", timestamp: "2024-03-10 09:15" }
+      {
+        senderId: 4,
+        text: "I feel stressed with exams and assignments.",
+        timestamp: "2024-03-10 09:00"
+      },
+      {
+        senderId: 2,
+        text: "That’s understandable. Let’s create a simple study plan.",
+        timestamp: "2024-03-10 09:15"
+      }
     ],
     createdAt: "2024-03-10"
+  }
+];
+
+// --- ROLE REQUESTS ---
+
+export let MOCK_ROLE_REQUESTS = [
+  {
+    id: 901,
+    userId: 3,
+    userName: "Sunil Jayasinghe",
+    message: "I have completed a counselling-related certificate and wish to support students.",
+    attachment: "counselling_certificate.pdf",
+    status: "pending",
+    createdAt: "2024-03-12"
   }
 ];

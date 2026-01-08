@@ -17,6 +17,9 @@ import StudentApplication from './pages/StudentApplication';
 import StudentTickets from './pages/StudentTickets';
 import CounselorTickets from './pages/CounselorTickets';
 
+import StaffRoleRequest from './pages/StaffRoleRequest';
+import AdminRoleRequests from './pages/AdminRoleRequests';
+
 const Home = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white">
     <div className="text-center">
@@ -57,6 +60,14 @@ function App() {
             <Route element={<ProtectedRoute allowedRoles={['student']} />}>
               <Route path="/student/application" element={<StudentApplication />} />
               <Route path="/student/tickets" element={<StudentTickets />} />
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={['staff']} />}>
+              <Route path="/staff/request-role" element={<StaffRoleRequest />} />
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin/role-requests" element={<AdminRoleRequests />} />
             </Route>
 
           </Route>
