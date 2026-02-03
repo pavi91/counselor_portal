@@ -1,9 +1,6 @@
-// src/api/applicationApi.js
-import { MOCK_APPLICATIONS, MOCK_USERS } from '../utils/mockDB';
+import apiClient from './apiClient';
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// --- POINT CALCULATION LOGIC ---
+// --- POINT CALCULATION LOGIC (Keep client-side for immediate feedback) ---
 const calculatePoints = (data) => {
   let points = 0;
   
@@ -56,51 +53,24 @@ const calculatePoints = (data) => {
 // --- API METHODS ---
 
 export const getMyApplicationAPI = async (userId) => {
-  await delay(300);
-  return MOCK_APPLICATIONS.find(a => a.userId === userId) || null;
+  const response = await apiClient.get(`/applications/user/${userId}`);
+  return response.data;
 };
 
 export const getAllApplicationsAPI = async () => {
-  await delay(400);
-  return MOCK_APPLICATIONS.map(app => {
-    const user = MOCK_USERS.find(u => u.id === app.userId);
-    return {
-      ...app,
-      studentName: app.fullName || (user ? user.name : 'Unknown'),
-      studentEmail: app.email || (user ? user.email : 'Unknown')
-    };
-  }).sort((a, b) => b.points - a.points);
+  const response = await apiClient.get('/applications');
+  return response.data;
 };
 
 export const submitApplicationAPI = async (userId, formData) => {
-  await delay(800);
-  
-  const existingIndex = MOCK_APPLICATIONS.findIndex(a => a.userId === userId);
-  const points = calculatePoints(formData);
-  
-  const newApp = {
-    id: existingIndex >= 0 ? MOCK_APPLICATIONS[existingIndex].id : Date.now(),
-    userId,
-    ...formData, // This now includes file_residence, file_income, etc.
-    points,
-    status: existingIndex >= 0 ? MOCK_APPLICATIONS[existingIndex].status : 'pending',
-    submissionDate: new Date().toISOString().split('T')[0]
-  };
-
-  if (existingIndex >= 0) {
-      MOCK_APPLICATIONS[existingIndex] = newApp;
-  } else {
-      MOCK_APPLICATIONS.push(newApp);
-  }
-  
-  return newApp;
+  const response = await apiClient.post(`/applications/user/${userId}`, formData);
+  return response.data;
 };
 
 export const updateApplicationStatusAPI = async (appId, status) => {
-  await delay(300);
-  const appIndex = MOCK_APPLICATIONS.findIndex(a => a.id === appId);
-  if (appIndex === -1) throw new Error("Application not found");
-  
-  MOCK_APPLICATIONS[appIndex] = { ...MOCK_APPLICATIONS[appIndex], status };
-  return MOCK_APPLICATIONS[appIndex];
+  const response = await apiClient.patch(`/applications/${appId}/status`, { status });
+  return response.data;
 };
+
+// Export point calculator for UI preview
+export { calculatePoints };

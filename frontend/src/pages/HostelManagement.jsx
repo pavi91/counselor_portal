@@ -44,9 +44,9 @@ const HostelManagement = () => {
   const loadInitialData = async () => {
     try {
       // 1. Fetch all reference data in parallel
-      const [hostels, allUsers, allApps, allAllocations] = await Promise.all([
+      const [hostels, students, allApps, allAllocations] = await Promise.all([
           hostelApi.getHostelsAPI(),
-          userApi.getUsersAPI(),
+          userApi.getUsersByRoleAPI('student'),
           applicationApi.getAllApplicationsAPI(),
           hostelApi.getAllAllocationsAPI()
       ]);
@@ -54,8 +54,8 @@ const HostelManagement = () => {
       setHostelList(hostels);
       if(hostels.length > 0) setSelectedHostel(hostels[0]);
 
-      // Filter only students
-      setStudents(allUsers.filter(u => u.role === 'student'));
+      // Already filtered to only students
+      setStudents(students);
       setApplications(allApps);
       setAllocations(allAllocations);
 

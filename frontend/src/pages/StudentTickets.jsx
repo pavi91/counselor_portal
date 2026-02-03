@@ -26,8 +26,8 @@ const StudentTickets = () => {
       const myTickets = await ticketApi.getStudentTicketsAPI(user.id);
       setTickets(myTickets);
 
-      const allUsers = await userApi.getUsersAPI(); 
-      const counselorList = allUsers.filter(u => u.role === 'counselor');
+      // Fetch only counselors using role-based filtering
+      const counselorList = await userApi.getUsersByRoleAPI('counselor');
       setCounselors(counselorList);
     } catch (e) {
       console.error(e);
