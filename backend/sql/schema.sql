@@ -4,7 +4,30 @@ USE counselor_portal;
 -- Roles
 CREATE TABLE IF NOT EXISTS roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL UNIQUE
+  name VARCHAR(50) NOT NULL UNIQUE,
+  description VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Permissions
+CREATE TABLE IF NOT EXISTS permissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  description VARCHAR(255),
+  resource VARCHAR(100) NOT NULL,
+  action VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Role Permissions (Many-to-Many)
+CREATE TABLE IF NOT EXISTS role_permissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  role_id INT NOT NULL,
+  permission_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_role_perm_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+  CONSTRAINT fk_role_perm_permission FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_role_permission (role_id, permission_id)
 ) ENGINE=InnoDB;
 
 -- Users

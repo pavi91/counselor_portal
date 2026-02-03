@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger/swaggerConfig');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -16,6 +18,18 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 app.use(morgan('dev'));
+
+// Swagger UI documentation
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayOperationId: false,
+    filter: true,
+    showRequestHeaders: true
+  },
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Counselor Portal API Documentation'
+}));
 
 app.get('/api/health', async (req, res) => {
   const health = {
