@@ -84,11 +84,11 @@ const submitApplication = async (userId, formData) => {
     emergencyName: formData.emergencyName || null,
     emergencyMobile: formData.emergencyMobile || null,
     emergencyAddress: formData.emergencyAddress || null,
-    fileResidence: formData.file_residence || null,
-    fileIncome: formData.file_income || null,
-    fileSiblings: formData.file_siblings || null,
-    fileSamurdhi: formData.file_samurdhi || null,
-    fileSports: formData.file_sports || null
+    fileResidence: formData.fileResidence || formData.file_residence || null,
+    fileIncome: formData.fileIncome || formData.file_income || null,
+    fileSiblings: formData.fileSiblings || formData.file_siblings || null,
+    fileSamurdhi: formData.fileSamurdhi || formData.file_samurdhi || null,
+    fileSports: formData.fileSports || formData.file_sports || null
   };
 
   const id = await applicationRepository.upsert(application);
@@ -99,9 +99,22 @@ const updateApplicationStatus = async (appId, status) => {
   await applicationRepository.updateStatus(appId, status);
 };
 
+const deleteApplicationByUserId = async (userId) => {
+  const existing = await applicationRepository.findByUserId(userId);
+  if (!existing) {
+    const err = new Error('Application not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const removed = await applicationRepository.deleteByUserId(userId);
+  return { success: true, removed };
+};
+
 module.exports = {
   getMyApplication,
   getAllApplications,
   submitApplication,
-  updateApplicationStatus
+  updateApplicationStatus,
+  deleteApplicationByUserId
 };

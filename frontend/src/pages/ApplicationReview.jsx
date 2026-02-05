@@ -1,8 +1,10 @@
 // src/pages/ApplicationReview.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as applicationApi from '../api/applicationApi';
 
 const ApplicationReview = () => {
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
@@ -38,6 +40,10 @@ const ApplicationReview = () => {
     }
   };
 
+  const handleAssignHostel = () => {
+    navigate('/hostel/tenants');
+  };
+
   // --- FILTERING LOGIC ---
   const filteredApps = applications.filter(app => {
     const term = searchTerm.toLowerCase();
@@ -50,18 +56,31 @@ const ApplicationReview = () => {
   });
 
   // Helper to show file link or "Not Provided"
-  const FileLink = ({ label, fileName }) => (
-    <div className="flex justify-between items-center py-2 border-b dark:border-slate-700 last:border-0">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{label}</span>
-        {fileName ? (
-            <span className="text-sm text-blue-600 font-mono bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">
-                📎 {fileName}
-            </span>
-        ) : (
-            <span className="text-xs text-slate-400 italic">Not Provided</span>
-        )}
-    </div>
-  );
+  const FileLink = ({ label, fileName }) => {
+    const fileUrl = fileName
+      ? (fileName.startsWith('http')
+          ? fileName
+          : `http://localhost:5000${fileName.startsWith('/') ? '' : '/'}${fileName}`)
+      : null;
+
+    return (
+      <div className="flex justify-between items-center py-2 border-b dark:border-slate-700 last:border-0">
+          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{label}</span>
+          {fileUrl ? (
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 font-mono bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hover:opacity-80 transition"
+              >
+                📎 {fileName.split('/').pop()}
+              </a>
+          ) : (
+              <span className="text-xs text-slate-400 italic">Not Provided</span>
+          )}
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -117,7 +136,7 @@ const ApplicationReview = () => {
                 <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                   <td className="px-6 py-4 font-mono text-slate-400">#{index + 1}</td>
                   <td className="px-6 py-4">
-                    <div className="font-bold dark:text-white">{app.studentName}</div>
+                    <div className="font-bold dark:text-white">{app.studentName || app.fullName || 'Unknown'}</div>
                     <div className="text-xs text-slate-500">{app.indexNumber || 'No Index'}</div>
                   </td>
                   <td className="px-6 py-4">
@@ -143,6 +162,11 @@ const ApplicationReview = () => {
                     <button onClick={() => setSelectedApp(app)} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded transition">
                         Review
                     </button>
+                    {app.status === 'approved' && (
+                      <button onClick={handleAssignHostel} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded transition">
+                        Assign Hostel
+                      </button>
+                    )}
                     {app.status === 'pending' && (
                       <>
                         <button onClick={() => handleStatusChange(app.id, 'approved')} className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded transition">Approve</button>
@@ -227,13 +251,11 @@ const ApplicationReview = () => {
                     <div className="col-span-1 md:col-span-2 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30">
                         <h3 className="font-bold text-sm uppercase text-blue-600 mb-2">Submitted Documents</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-                            <FileLink label="Residence (GN Cert)" fileName={selectedApp.file_residence} />
-                            <FileLink label="Income Proof" fileName={selectedApp.file_income} />
-                            <FileLink label="Sibling Letters" fileName={selectedApp.file_siblings} />
-                            <FileLink label="Samurdhi Card" fileName={selectedApp.file_samurdhi} />
-                            <FileLink label="Sports Certs" fileName={selectedApp.file_sports} />
-                            <FileLink label="Medical (Parent)" fileName={selectedApp.file_parentMedical} />
-                            <FileLink label="Death Cert" fileName={selectedApp.file_parentDeath} />
+                            <FileLink label="Residence (GN Cert)" fileName={selectedApp.fileResidence} />
+                            <FileLink label="Income Proof" fileName={selectedApp.fileIncome} />
+                            <FileLink label="Sibling Letters" fileName={selectedApp.fileSiblings} />
+                            <FileLink label="Samurdhi Card" fileName={selectedApp.fileSamurdhi} />
+                            <FileLink label="Sports Certs" fileName={selectedApp.fileSports} />
                         </div>
                     </div>
 
@@ -241,6 +263,9 @@ const ApplicationReview = () => {
 
                 <div className="flex gap-3">
                     <button onClick={() => setSelectedApp(null)} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">Close</button>
+                    {selectedApp.status === 'approved' && (
+                        <button onClick={handleAssignHostel} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">Assign Hostel</button>
+                    )}
                     {selectedApp.status === 'pending' && (
                         <>
                             <button onClick={() => handleStatusChange(selectedApp.id, 'approved')} className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">Approve Application</button>

@@ -2,7 +2,9 @@ const hostelService = require('../services/hostelService');
 
 const getHostels = async (req, res, next) => {
   try {
-    const hostels = await hostelService.getHostels();
+    const gender = req.query.gender || null;
+    const yearGroup = req.query.year || req.query.year_group || null;
+    const hostels = await hostelService.getHostels({ gender, yearGroup });
     res.json(hostels.map(h => h.name));
   } catch (err) {
     next(err);
@@ -40,8 +42,13 @@ const getStudentHostelDetails = async (req, res, next) => {
 
 const assignRoom = async (req, res, next) => {
   try {
-    const { userId, roomId } = req.body;
-    const allocation = await hostelService.assignRoom(parseInt(userId, 10), parseInt(roomId, 10));
+    const { userId, roomId, startDate, endDate } = req.body;
+    const allocation = await hostelService.assignRoom(
+      parseInt(userId, 10), 
+      parseInt(roomId, 10),
+      startDate,
+      endDate
+    );
     res.status(201).json(allocation);
   } catch (err) {
     next(err);

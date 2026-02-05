@@ -11,7 +11,8 @@ import {
   Home,
   ClipboardList,
   Ticket,
-  UserPlus
+  UserPlus,
+  User
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -57,6 +58,14 @@ const Sidebar = () => {
           label="Dashboard"
           icon={<LayoutDashboard size={18} />}
           isActive={isActive("/home")}
+          collapsed={collapsed}
+        />
+
+        <NavItem
+          to="/profile"
+          label="My Profile"
+          icon={<User size={18} />}
+          isActive={isActive("/profile")}
           collapsed={collapsed}
         />
 

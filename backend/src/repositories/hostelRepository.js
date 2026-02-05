@@ -1,7 +1,27 @@
 const db = require('../config/db');
 
-const getHostels = async () => {
-  const [rows] = await db.query(`SELECT id, name FROM hostels ORDER BY name`);
+const getHostels = async ({ gender = null, yearGroup = null } = {}) => {
+  let sql = `SELECT id, name, gender, year_group AS yearGroup FROM hostels`;
+  const params = [];
+  const conditions = [];
+
+  if (gender) {
+    conditions.push(`(gender = ? OR gender = 'any' OR gender IS NULL)`);
+    params.push(gender);
+  }
+
+  if (yearGroup) {
+    conditions.push(`(year_group = ? OR year_group = 'any' OR year_group IS NULL)`);
+    params.push(yearGroup);
+  }
+
+  if (conditions.length > 0) {
+    sql += ` WHERE ${conditions.join(' AND ')}`;
+  }
+
+  sql += ` ORDER BY name`;
+
+  const [rows] = await db.query(sql, params);
   return rows;
 };
 

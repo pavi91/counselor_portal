@@ -2,6 +2,8 @@ const express = require('express');
 const ticketController = require('../controllers/ticketController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const rbacMiddleware = require('../middlewares/rbacMiddleware');
+const { uploadTicketAttachment } = require('../middlewares/uploadMiddleware');
+const { validateTicketCreate, validateTicketReply } = require('../middlewares/validationMiddleware');
 
 const router = express.Router();
 
@@ -118,7 +120,7 @@ router.get('/counselor/:counselorId', authMiddleware, rbacMiddleware('tickets.vi
  *       500:
  *         description: Server error
  */
-router.post('/', authMiddleware, rbacMiddleware('tickets.create'), ticketController.createTicket);
+router.post('/', authMiddleware, rbacMiddleware('tickets.create'), uploadTicketAttachment, validateTicketCreate, ticketController.createTicket);
 
 /**
  * @swagger
@@ -173,7 +175,7 @@ router.post('/', authMiddleware, rbacMiddleware('tickets.create'), ticketControl
  *       500:
  *         description: Server error
  */
-router.post('/:id/reply', authMiddleware, rbacMiddleware('tickets.reply'), ticketController.replyToTicket);
+router.post('/:id/reply', authMiddleware, rbacMiddleware('tickets.reply'), uploadTicketAttachment, validateTicketReply, ticketController.replyToTicket);
 
 /**
  * @swagger

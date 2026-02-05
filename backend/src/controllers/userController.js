@@ -5,6 +5,22 @@ const getUsers = async (req, res, next) => {
     const query = req.query.q || '';
     const role = req.query.role;
     
+    // If user is a student, they can only query for counselors
+    if (req.user.role === 'student') {
+      if (!role) {
+        return res.status(400).json({
+          error: 'Bad Request',
+          message: 'Student users must specify a role filter'
+        });
+      }
+      if (role !== 'counselor') {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Student users can only view counselors'
+        });
+      }
+    }
+    
     let users;
     if (role) {
       // Only return users with specific role
@@ -59,10 +75,39 @@ const bulkCreateUsers = async (req, res, next) => {
   }
 };
 
+const getMe = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
+    }
+    const user = await userService.getUserById(userId);
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const changeMyPassword = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
+    }
+    const { currentPassword, newPassword } = req.body;
+    const result = await userService.changePassword(userId, currentPassword, newPassword);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getUsers,
   createUser,
   updateUserRole,
   deleteUser,
-  bulkCreateUsers
+  bulkCreateUsers,
+  getMe,
+  changeMyPassword
 };

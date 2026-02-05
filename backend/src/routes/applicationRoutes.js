@@ -2,6 +2,8 @@ const express = require('express');
 const applicationController = require('../controllers/applicationController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const rbacMiddleware = require('../middlewares/rbacMiddleware');
+const { uploadApplicationFiles } = require('../middlewares/uploadMiddleware');
+const { validateApplicationSubmit } = require('../middlewares/validationMiddleware');
 
 const router = express.Router();
 
@@ -116,7 +118,7 @@ router.get('/user/:userId', authMiddleware, rbacMiddleware(['applications.view_o
  *       500:
  *         description: Server error
  */
-router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit'), applicationController.submitApplication);
+router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit'), uploadApplicationFiles, validateApplicationSubmit, applicationController.submitApplication);
 
 /**
  * @swagger
@@ -174,5 +176,36 @@ router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit
  *         description: Server error
  */
 router.patch('/:id/status', authMiddleware, rbacMiddleware('applications.review'), applicationController.updateStatus);
+
+/**
+ * @swagger
+ * /api/applications/user/{userId}:
+ *   delete:
+ *     summary: Delete user's application
+ *     description: Delete a user's application (requires applications.review permission)
+ *     tags:
+ *       - Applications
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: Application deleted
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       404:
+ *         description: Application not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/user/:userId', authMiddleware, rbacMiddleware('applications.review'), applicationController.deleteByUserId);
 
 module.exports = router;

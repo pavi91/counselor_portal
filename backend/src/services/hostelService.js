@@ -1,6 +1,6 @@
 const hostelRepository = require('../repositories/hostelRepository');
 
-const getHostels = async () => hostelRepository.getHostels();
+const getHostels = async (filters = {}) => hostelRepository.getHostels(filters);
 
 const getHostelStats = async (hostelName = null) => {
   const hostels = await hostelRepository.getHostels();
@@ -50,7 +50,7 @@ const getAllAllocations = async () => hostelRepository.getAllocations();
 
 const getStudentHostelDetails = async (userId) => hostelRepository.getAllocationByUserId(userId);
 
-const assignRoom = async (userId, roomId) => {
+const assignRoom = async (userId, roomId, startDate = null, endDate = null) => {
   const existing = await hostelRepository.getAllocationByUserId(userId);
   if (existing) {
     const err = new Error('Student is already assigned to a room.');
@@ -72,13 +72,14 @@ const assignRoom = async (userId, roomId) => {
     throw err;
   }
 
-  const startDate = new Date().toISOString().split('T')[0];
-  const endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+  // Use provided dates or fallback to default values
+  const finalStartDate = startDate || new Date().toISOString().split('T')[0];
+  const finalEndDate = endDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
     .toISOString()
     .split('T')[0];
 
-  const id = await hostelRepository.createAllocation({ userId, roomId, startDate, endDate });
-  return { id, userId, roomId, startDate, endDate };
+  const id = await hostelRepository.createAllocation({ userId, roomId, startDate: finalStartDate, endDate: finalEndDate });
+  return { id, userId, roomId, startDate: finalStartDate, endDate: finalEndDate };
 };
 
 const removeAllocation = async (userId) => {

@@ -2,6 +2,7 @@ const express = require('express');
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const rbacMiddleware = require('../middlewares/rbacMiddleware');
+const { validateUserCreate } = require('../middlewares/validationMiddleware');
 
 const router = express.Router();
 
@@ -41,7 +42,73 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', authMiddleware, rbacMiddleware('users.view_all'), userController.getUsers);
+router.get('/', authMiddleware, rbacMiddleware(['users.view_all', 'users.view_by_role']), userController.getUsers);
+
+/**
+ * @swagger
+ * /api/users/me:
+ *   get:
+ *     summary: Get current user profile
+ *     description: Retrieve the authenticated user's full profile for prefilling forms
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/me', authMiddleware, userController.getMe);
+
+/**
+ * @swagger
+ * /api/users/me/password:
+ *   patch:
+ *     summary: Change current user password
+ *     description: Update the authenticated user's password
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 example: oldpass123
+ *               newPassword:
+ *                 type: string
+ *                 example: newpass123
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.patch('/me/password', authMiddleware, userController.changeMyPassword);
 
 /**
  * @swagger
@@ -110,7 +177,7 @@ router.get('/', authMiddleware, rbacMiddleware('users.view_all'), userController
  *       500:
  *         description: Server error
  */
-router.post('/', authMiddleware, rbacMiddleware('users.create'), userController.createUser);
+router.post('/', authMiddleware, rbacMiddleware('users.create'), validateUserCreate, userController.createUser);
 
 /**
  * @swagger

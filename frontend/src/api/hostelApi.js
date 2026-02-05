@@ -2,8 +2,11 @@ import apiClient from './apiClient';
 
 // --- GETTERS ---
 
-export const getHostelsAPI = async () => {
-  const response = await apiClient.get('/hostels');
+export const getHostelsAPI = async ({ gender = null, year = null } = {}) => {
+  const params = {};
+  if (gender) params.gender = gender;
+  if (year) params.year = year;
+  const response = await apiClient.get('/hostels', { params });
   return response.data;
 };
 
@@ -25,8 +28,8 @@ export const getStudentHostelDetailsAPI = async (userId) => {
 
 // --- ACTION METHODS ---
 
-export const assignRoomAPI = async (userId, roomId) => {
-  const response = await apiClient.post('/hostels/assign', { userId, roomId });
+export const assignRoomAPI = async (userId, roomId, startDate = null, endDate = null) => {
+  const response = await apiClient.post('/hostels/assign', { userId, roomId, startDate, endDate });
   return response.data;
 };
 

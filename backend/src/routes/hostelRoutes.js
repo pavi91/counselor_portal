@@ -2,6 +2,7 @@ const express = require('express');
 const hostelController = require('../controllers/hostelController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const rbacMiddleware = require('../middlewares/rbacMiddleware');
+const { validateHostelAssignment, validateRoomCreate } = require('../middlewares/validationMiddleware');
 
 const router = express.Router();
 
@@ -158,19 +159,25 @@ router.get('/allocations/:userId', authMiddleware, rbacMiddleware(['hostels.view
  *           schema:
  *             type: object
  *             required:
- *               - studentId
- *               - hostelId
- *               - roomNumber
+ *               - userId
+ *               - roomId
  *             properties:
- *               studentId:
+ *               userId:
  *                 type: integer
  *                 example: 1
- *               hostelId:
+ *               roomId:
  *                 type: integer
  *                 example: 1
- *               roomNumber:
+ *               startDate:
  *                 type: string
- *                 example: "101"
+ *                 format: date
+ *                 example: "2026-02-01"
+ *                 description: Start date of the allocation
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2027-02-01"
+ *                 description: End date of the allocation
  *     responses:
  *       201:
  *         description: Room assigned successfully
@@ -189,7 +196,7 @@ router.get('/allocations/:userId', authMiddleware, rbacMiddleware(['hostels.view
  *       500:
  *         description: Server error
  */
-router.post('/assign', authMiddleware, rbacMiddleware('hostels.assign'), hostelController.assignRoom);
+router.post('/assign', authMiddleware, rbacMiddleware('hostels.assign'), validateHostelAssignment, hostelController.assignRoom);
 
 /**
  * @swagger
@@ -276,6 +283,6 @@ router.delete('/allocations/:userId', authMiddleware, rbacMiddleware('hostels.ma
  *       500:
  *         description: Server error
  */
-router.post('/rooms', authMiddleware, rbacMiddleware('hostels.manage'), hostelController.createRoom);
+router.post('/rooms', authMiddleware, rbacMiddleware('hostels.manage'), validateRoomCreate, hostelController.createRoom);
 
 module.exports = router;

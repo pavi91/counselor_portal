@@ -12,6 +12,7 @@ ON DUPLICATE KEY UPDATE description = VALUES(description);
 INSERT INTO permissions (name, description, resource, action) VALUES
   -- User Management
   ('users.view_all', 'View all users', 'users', 'view'),
+  ('users.view_by_role', 'View users filtered by role', 'users', 'view'),
   ('users.create', 'Create new user', 'users', 'create'),
   ('users.edit', 'Edit user details', 'users', 'edit'),
   ('users.delete', 'Delete user', 'users', 'delete'),
@@ -72,7 +73,7 @@ ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'counselor' AND p.name IN (
-  'users.view_all',
+  'users.view_by_role',
   'applications.view_all',
   'hostels.view', 'hostels.view_stats',
   'tickets.view_assigned', 'tickets.reply', 'tickets.resolve',
@@ -85,6 +86,7 @@ ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p
 WHERE r.name = 'student' AND p.name IN (
+  'users.view_by_role',
   'applications.view_own', 'applications.submit', 'applications.edit_own',
   'hostels.view', 'hostels.view_allocation',
   'tickets.create', 'tickets.view_own', 'tickets.reply',
@@ -103,15 +105,23 @@ VALUES
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- Insert Hostels
-INSERT INTO hostels (name) VALUES
-  ("Men's Hostel A"),
-  ("Women's Hostel B")
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+INSERT INTO hostels (name, gender, year_group) VALUES
+  ('A Hostel', 'male', 'final_year'),
+  ('Patuwathawithana Hostel', 'male', 'final_year'),
+  ('Hostel Village Complex', 'male', 'final_year'),
+  ('First Lane', 'male', 'first_year'),
+  ('Rahula Mawatha', 'male', 'first_year'),
+  ('Nugasewana -1', 'female', 'final_year'),
+  ('Nugasewana -2', 'female', 'final_year'),
+  ('B Hostel', 'female', 'first_year'),
+  ('C Hostel', 'female', 'first_year'),
+  ('General Hostel', 'any', 'any')
+ON DUPLICATE KEY UPDATE name = VALUES(name), gender = VALUES(gender), year_group = VALUES(year_group);
 
 -- Insert Rooms
-  ((SELECT id FROM hostels WHERE name = "Men's Hostel A"), '101', 1, 2, 'Double'),
-  ((SELECT id FROM hostels WHERE name = "Men's Hostel A"), '102', 1, 2, 'Double'),
-  ((SELECT id FROM hostels WHERE name = "Men's Hostel A"), '201', 2, 1, 'Single'),
-  ((SELECT id FROM hostels WHERE name = "Women's Hostel B"), '101', 1, 2, 'Double'),
-  ((SELECT id FROM hostels WHERE name = "Women's Hostel B"), '102', 1, 4, 'Dorm')
+INSERT INTO rooms (hostel_id, number, floor, capacity, type) VALUES
+  ((SELECT id FROM hostels WHERE name = 'A Hostel'), '101', 1, 2, 'Double'),
+  ((SELECT id FROM hostels WHERE name = 'A Hostel'), '102', 1, 2, 'Double'),
+  ((SELECT id FROM hostels WHERE name = 'B Hostel'), '101', 1, 2, 'Double'),
+  ((SELECT id FROM hostels WHERE name = 'C Hostel'), '102', 1, 4, 'Dorm')
 ON DUPLICATE KEY UPDATE capacity = VALUES(capacity);

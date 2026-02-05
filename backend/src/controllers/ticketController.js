@@ -22,7 +22,16 @@ const getCounselorTickets = async (req, res, next) => {
 
 const createTicket = async (req, res, next) => {
   try {
-    const { studentId, counselorId, subject, initialMessage, attachment } = req.body;
+    const { studentId, counselorId, subject, initialMessage } = req.body;
+    
+    // Handle uploaded attachment from multer
+    let attachment = null;
+    if (req.file) {
+      attachment = `/filestore/${req.file.filename}`;
+      console.log('Attachment uploaded:', attachment);
+    }
+
+    
     const ticket = await ticketService.createTicket(
       parseInt(studentId, 10),
       parseInt(counselorId, 10),
@@ -39,7 +48,14 @@ const createTicket = async (req, res, next) => {
 const replyToTicket = async (req, res, next) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
-    const { senderId, message, attachment } = req.body;
+    const { senderId, message } = req.body;
+    
+    // Handle uploaded attachment from multer
+    let attachment = null;
+    if (req.file) {
+      attachment = `/filestore/${req.file.filename}`;
+    }
+    
     const ticket = await ticketService.replyToTicket(ticketId, parseInt(senderId, 10), message, attachment);
     res.json(ticket);
   } catch (err) {

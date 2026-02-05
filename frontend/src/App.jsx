@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Unauthorized from './pages/Unauthorized';
 import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/UserManagement';
+import Profile from './pages/Profile';
 
 import HostelManagement from './pages/HostelManagement'; 
 import ApplicationReview from './pages/ApplicationReview';
@@ -43,6 +44,7 @@ function App() {
           <Route element={<DashboardLayout />}>
             {/* Common */}
             <Route path="/home" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
 
             {/* ADMIN & STAFF */}
             <Route element={<ProtectedRoute allowedRoles={['admin', 'staff']} />}>

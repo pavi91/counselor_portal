@@ -82,7 +82,11 @@ const CounselorTickets = () => {
                  <span className="text-xs text-slate-500">{ticket.createdAt}</span>
                </div>
                <p className="font-medium text-sm text-blue-600 dark:text-blue-400 truncate">{ticket.subject}</p>
-               <p className="text-xs text-slate-500 mt-1 truncate">{ticket.messages[ticket.messages.length - 1].text}</p>
+               <p className="text-xs text-slate-500 mt-1 truncate">
+                 {ticket.messages && ticket.messages.length > 0 
+                   ? ticket.messages[ticket.messages.length - 1].text 
+                   : 'No messages'}
+               </p>
                {ticket.status === 'closed' && <span className="inline-block mt-2 text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded uppercase font-bold">Closed</span>}
              </div>
            ))}
@@ -112,7 +116,8 @@ const CounselorTickets = () => {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {selectedTicket.messages.map((msg, idx) => {
+              {selectedTicket.messages && selectedTicket.messages.length > 0 ? (
+                selectedTicket.messages.map((msg, idx) => {
                  const isMe = msg.senderId === user.id;
                  return (
                    <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -124,10 +129,15 @@ const CounselorTickets = () => {
                          <p className="text-sm">{msg.text}</p>
                          {/* Render Attachment Link */}
                          {msg.attachment && (
-                            <div className={`mt-2 p-2 rounded text-xs flex items-center gap-2 ${isMe ? 'bg-blue-700' : 'bg-white dark:bg-slate-600'}`}>
+                            <a 
+                              href={`http://localhost:5000${msg.attachment}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`mt-2 p-2 rounded text-xs flex items-center gap-2 cursor-pointer hover:opacity-80 transition ${isMe ? 'bg-blue-700 hover:bg-blue-800' : 'bg-white dark:bg-slate-600 hover:bg-slate-50 dark:hover:bg-slate-500'}`}
+                            >
                                 <span className="text-lg">📎</span>
-                                <span className="font-mono truncate max-w-[150px]">{msg.attachment}</span>
-                            </div>
+                                <span className="font-mono truncate max-w-[150px]">{msg.attachment.split('/').pop()}</span>
+                            </a>
                          )}
                          <p className={`text-[10px] mt-1 opacity-70 ${isMe ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400'}`}>
                             {msg.timestamp}
@@ -135,7 +145,12 @@ const CounselorTickets = () => {
                       </div>
                    </div>
                  );
-              })}
+              })
+              ) : (
+                <div className="flex items-center justify-center h-full text-slate-400">
+                  <p>No messages yet</p>
+                </div>
+              )}
             </div>
 
             {/* Reply Area */}
