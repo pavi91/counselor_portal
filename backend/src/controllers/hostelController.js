@@ -2,7 +2,9 @@ const hostelService = require('../services/hostelService');
 
 const getHostels = async (req, res, next) => {
   try {
-    const hostels = await hostelService.getHostels();
+    const gender = req.query.gender || null;
+    const yearGroup = req.query.year || req.query.year_group || null;
+    const hostels = await hostelService.getHostels({ gender, yearGroup });
     res.json(hostels.map(h => h.name));
   } catch (err) {
     next(err);

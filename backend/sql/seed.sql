@@ -105,16 +105,23 @@ VALUES
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- Insert Hostels
-INSERT INTO hostels (name) VALUES
-  ("Men's Hostel A"),
-  ("Women's Hostel B")
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+INSERT INTO hostels (name, gender, year_group) VALUES
+  ('A Hostel', 'male', 'final_year'),
+  ('Patuwathawithana Hostel', 'male', 'final_year'),
+  ('Hostel Village Complex', 'male', 'final_year'),
+  ('First Lane', 'male', 'first_year'),
+  ('Rahula Mawatha', 'male', 'first_year'),
+  ('Nugasewana -1', 'female', 'final_year'),
+  ('Nugasewana -2', 'female', 'final_year'),
+  ('B Hostel', 'female', 'first_year'),
+  ('C Hostel', 'female', 'first_year'),
+  ('General Hostel', 'any', 'any')
+ON DUPLICATE KEY UPDATE name = VALUES(name), gender = VALUES(gender), year_group = VALUES(year_group);
 
 -- Insert Rooms
 INSERT INTO rooms (hostel_id, number, floor, capacity, type) VALUES
-  ((SELECT id FROM hostels WHERE name = "Men's Hostel A"), '101', 1, 2, 'Double'),
-  ((SELECT id FROM hostels WHERE name = "Men's Hostel A"), '102', 1, 2, 'Double'),
-  ((SELECT id FROM hostels WHERE name = "Men's Hostel A"), '201', 2, 1, 'Single'),
-  ((SELECT id FROM hostels WHERE name = "Women's Hostel B"), '101', 1, 2, 'Double'),
-  ((SELECT id FROM hostels WHERE name = "Women's Hostel B"), '102', 1, 4, 'Dorm')
+  ((SELECT id FROM hostels WHERE name = 'A Hostel'), '101', 1, 2, 'Double'),
+  ((SELECT id FROM hostels WHERE name = 'A Hostel'), '102', 1, 2, 'Double'),
+  ((SELECT id FROM hostels WHERE name = 'B Hostel'), '101', 1, 2, 'Double'),
+  ((SELECT id FROM hostels WHERE name = 'C Hostel'), '102', 1, 4, 'Dorm')
 ON DUPLICATE KEY UPDATE capacity = VALUES(capacity);

@@ -177,4 +177,35 @@ router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit
  */
 router.patch('/:id/status', authMiddleware, rbacMiddleware('applications.review'), applicationController.updateStatus);
 
+/**
+ * @swagger
+ * /api/applications/user/{userId}:
+ *   delete:
+ *     summary: Delete user's application
+ *     description: Delete a user's application (requires applications.review permission)
+ *     tags:
+ *       - Applications
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: Application deleted
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       404:
+ *         description: Application not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/user/:userId', authMiddleware, rbacMiddleware('applications.review'), applicationController.deleteByUserId);
+
 module.exports = router;

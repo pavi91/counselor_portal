@@ -2,8 +2,11 @@ import apiClient from './apiClient';
 
 // --- GETTERS ---
 
-export const getHostelsAPI = async () => {
-  const response = await apiClient.get('/hostels');
+export const getHostelsAPI = async ({ gender = null, year = null } = {}) => {
+  const params = {};
+  if (gender) params.gender = gender;
+  if (year) params.year = year;
+  const response = await apiClient.get('/hostels', { params });
   return response.data;
 };
 

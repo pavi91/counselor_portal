@@ -11,6 +11,8 @@ const StudentApplication = () => {
   const [hostelAllocation, setHostelAllocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [hostelOptions, setHostelOptions] = useState([]);
+  const [hostelOptionsLoading, setHostelOptionsLoading] = useState(false);
 
   console.log('User Profile:', user);
 
@@ -125,6 +127,33 @@ const StudentApplication = () => {
     }));
   }, [user]);
 
+  useEffect(() => {
+    const fetchHostels = async () => {
+      setHostelOptionsLoading(true);
+      try {
+        const options = await hostelApi.getHostelsAPI({
+          gender: formData.gender,
+          year: formData.year
+        });
+        setHostelOptions(options || []);
+      } catch (err) {
+        console.error(err);
+        setHostelOptions([]);
+      } finally {
+        setHostelOptionsLoading(false);
+      }
+    };
+
+    if (!formData.gender || !formData.year) return;
+    fetchHostels();
+  }, [formData.gender, formData.year]);
+
+  useEffect(() => {
+    if (formData.hostelPref && !hostelOptions.includes(formData.hostelPref)) {
+      setFormData(prev => ({ ...prev, hostelPref: '' }));
+    }
+  }, [hostelOptions]);
+
   const loadMyApplication = async () => {
     try {
       const data = await applicationApi.getMyApplicationAPI(user.id);
@@ -188,18 +217,6 @@ const StudentApplication = () => {
       {formData[name] && <p className="text-xs text-green-600 mt-1">✓ Selected: {formData[name]?.name || formData[name]}</p>}
     </div>
   );
-
-  const getHostelOptions = () => {
-    const { gender, year } = formData;
-    if (gender === 'male') {
-      if (year === 'final_year') return ['A Hostel', 'Patuwathawithana Hostel', 'Hostel Village Complex'];
-      if (year === 'first_year') return ['First Lane', 'Rahula Mawatha'];
-    } else {
-      if (year === 'final_year') return ['Nugasewana -1', 'Nugasewana -2'];
-      if (year === 'first_year') return ['B Hostel', 'C Hostel'];
-    }
-    return ['General Hostel']; 
-  };
 
   const totalSiblings = parseInt(formData.siblingsSchool || 0) + parseInt(formData.siblingsUni || 0);
 
@@ -560,7 +577,13 @@ const StudentApplication = () => {
                <label className="block text-sm font-medium mb-1 dark:text-slate-300">Preferred Hostel</label>
                <select name="hostelPref" value={formData.hostelPref} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
                   <option value="">-- Select Preference --</option>
-                  {getHostelOptions().map(hostel => (<option key={hostel} value={hostel}>{hostel}</option>))}
+                  {hostelOptionsLoading && <option disabled>Loading hostels...</option>}
+                  {!hostelOptionsLoading && hostelOptions.length === 0 && (
+                    <option disabled>No hostels available</option>
+                  )}
+                  {hostelOptions.map(hostel => (
+                    <option key={hostel} value={hostel}>{hostel}</option>
+                  ))}
                </select>
             </div>
             <button type="submit" disabled={submitting} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition disabled:opacity-50">

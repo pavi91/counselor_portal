@@ -181,9 +181,15 @@ const updateStatus = async (id, status) => {
   await db.query(`UPDATE applications SET status = ? WHERE id = ?`, [status, id]);
 };
 
+const deleteByUserId = async (userId) => {
+  const [result] = await db.query(`DELETE FROM applications WHERE user_id = ?`, [userId]);
+  return result.affectedRows || 0;
+};
+
 module.exports = {
   findByUserId,
   findAll,
   upsert,
-  updateStatus
+  updateStatus,
+  deleteByUserId
 };

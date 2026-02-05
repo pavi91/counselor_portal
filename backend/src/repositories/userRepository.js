@@ -127,7 +127,7 @@ const checkUserDependencies = async (userId) => {
 
   // Check for tickets
   const [tickets] = await db.query(
-    `SELECT COUNT(*) as count FROM tickets WHERE user_id = ? OR assigned_to = ?`,
+    `SELECT COUNT(*) as count FROM tickets WHERE student_id = ? OR counselor_id = ?`,
     [userId, userId]
   );
   if (tickets[0].count > 0) {

@@ -61,9 +61,20 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
+const deleteByUserId = async (req, res, next) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const result = await applicationService.deleteApplicationByUserId(userId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getMyApplication,
   getAllApplications,
   submitApplication,
-  updateStatus
+  updateStatus,
+  deleteByUserId
 };

@@ -1,6 +1,6 @@
 const hostelRepository = require('../repositories/hostelRepository');
 
-const getHostels = async () => hostelRepository.getHostels();
+const getHostels = async (filters = {}) => hostelRepository.getHostels(filters);
 
 const getHostelStats = async (hostelName = null) => {
   const hostels = await hostelRepository.getHostels();

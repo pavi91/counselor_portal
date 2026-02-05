@@ -52,7 +52,11 @@ const updateUserRole = async (userId, role) => {
 };
 
 const deleteUser = async (userId) => {
-  // Check if user has any dependencies
+  // First, delete any applications for this user
+  const applicationRepository = require('../repositories/applicationRepository');
+  await applicationRepository.deleteByUserId(userId);
+
+  // Check if user has any remaining dependencies
   const dependencies = await userRepository.checkUserDependencies(userId);
   
   if (dependencies.hasDependencies) {

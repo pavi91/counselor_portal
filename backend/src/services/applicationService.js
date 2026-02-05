@@ -99,9 +99,22 @@ const updateApplicationStatus = async (appId, status) => {
   await applicationRepository.updateStatus(appId, status);
 };
 
+const deleteApplicationByUserId = async (userId) => {
+  const existing = await applicationRepository.findByUserId(userId);
+  if (!existing) {
+    const err = new Error('Application not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const removed = await applicationRepository.deleteByUserId(userId);
+  return { success: true, removed };
+};
+
 module.exports = {
   getMyApplication,
   getAllApplications,
   submitApplication,
-  updateApplicationStatus
+  updateApplicationStatus,
+  deleteApplicationByUserId
 };
