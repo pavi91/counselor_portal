@@ -84,11 +84,11 @@ const submitApplication = async (userId, formData) => {
     emergencyName: formData.emergencyName || null,
     emergencyMobile: formData.emergencyMobile || null,
     emergencyAddress: formData.emergencyAddress || null,
-    fileResidence: formData.file_residence || null,
-    fileIncome: formData.file_income || null,
-    fileSiblings: formData.file_siblings || null,
-    fileSamurdhi: formData.file_samurdhi || null,
-    fileSports: formData.file_sports || null
+    fileResidence: formData.fileResidence || formData.file_residence || null,
+    fileIncome: formData.fileIncome || formData.file_income || null,
+    fileSiblings: formData.fileSiblings || formData.file_siblings || null,
+    fileSamurdhi: formData.fileSamurdhi || formData.file_samurdhi || null,
+    fileSports: formData.fileSports || formData.file_sports || null
   };
 
   const id = await applicationRepository.upsert(application);

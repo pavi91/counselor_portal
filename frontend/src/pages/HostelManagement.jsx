@@ -24,6 +24,8 @@ const HostelManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState('');
   const [showAddRoomModal, setShowAddRoomModal] = useState(false);
   const [success, setSuccess] = useState('');
 
@@ -105,9 +107,11 @@ const HostelManagement = () => {
     e.preventDefault();
     if (!selectedStudentId) return;
     try {
-      await hostelApi.assignRoomAPI(selectedStudentId, selectedRoom.id);
+      await hostelApi.assignRoomAPI(selectedStudentId, selectedRoom.id, startDate, endDate);
       setSuccess(`Student allocated to Room ${selectedRoom.number}`);
       setSelectedStudentId('');
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setEndDate('');
       setSelectedRoom(null);
       loadStats(); // Refresh grid
     } catch (err) { 
@@ -241,9 +245,14 @@ const HostelManagement = () => {
                         {selectedRoom.occupants.length === 0 && <p className="text-sm text-slate-400 italic">Room is empty.</p>}
                         {selectedRoom.occupants.map(occ => (
                             <div key={occ.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border dark:border-slate-700">
-                                <div>
+                                <div className="flex-1">
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{occ.studentName}</p>
                                     <p className="text-xs text-slate-500">{occ.studentEmail}</p>
+                                    {(occ.startDate || occ.endDate) && (
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            {occ.startDate} → {occ.endDate}
+                                        </p>
+                                    )}
                                 </div>
                                 {/* STAFF/ADMIN can remove students */}
                                 {perms.canManageTenants && (
@@ -262,26 +271,46 @@ const HostelManagement = () => {
                             <div className="text-xs text-slate-500">
                                 Only students with <strong>Approved Applications</strong> who are not yet allocated will appear here.
                             </div>
-                            <div className="flex gap-2">
-                                <select 
-                                    value={selectedStudentId}
-                                    onChange={(e) => setSelectedStudentId(e.target.value)}
-                                    className="flex-1 p-2 rounded border dark:bg-slate-900 dark:border-slate-600 dark:text-white text-sm"
-                                    required
-                                >
-                                    <option value="">-- Select Eligible Student --</option>
-                                    {eligibleStudents.length === 0 ? (
-                                        <option disabled>No eligible students found</option>
-                                    ) : (
-                                        eligibleStudents.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name} ({s.email})</option>
-                                        ))
-                                    )}
-                                </select>
-                                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold">
-                                    Assign
-                                </button>
+                            <select 
+                                value={selectedStudentId}
+                                onChange={(e) => setSelectedStudentId(e.target.value)}
+                                className="w-full p-2 rounded border dark:bg-slate-900 dark:border-slate-600 dark:text-white text-sm"
+                                required
+                            >
+                                <option value="">-- Select Eligible Student --</option>
+                                {eligibleStudents.length === 0 ? (
+                                    <option disabled>No eligible students found</option>
+                                ) : (
+                                    eligibleStudents.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name} ({s.email})</option>
+                                    ))
+                                )}
+                            </select>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="block text-xs text-slate-500 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="w-full p-2 rounded border dark:bg-slate-900 dark:border-slate-600 dark:text-white text-sm"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-slate-500 mb-1">End Date</label>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="w-full p-2 rounded border dark:bg-slate-900 dark:border-slate-600 dark:text-white text-sm"
+                                        required
+                                    />
+                                </div>
                             </div>
+                            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold">
+                                Assign to Room
+                            </button>
                         </form>
                     </div>
                 )}

@@ -11,7 +11,14 @@ const getRoleRequests = async (req, res, next) => {
 
 const createRoleRequest = async (req, res, next) => {
   try {
-    const { userId, message, attachment } = req.body;
+    const { userId, message } = req.body;
+    
+    // Handle uploaded attachment from multer
+    let attachment = null;
+    if (req.file) {
+      attachment = `/filestore/${req.file.filename}`;
+    }
+    
     const request = await roleRequestService.createRoleRequest(userId, message, attachment);
     res.status(201).json(request);
   } catch (err) {

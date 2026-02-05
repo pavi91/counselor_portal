@@ -147,7 +147,14 @@ const UserManagement = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
-    try { await userApi.deleteUserAPI(id); loadData(); } catch (err) { setError("Failed to delete user"); }
+    try { 
+      setError('');
+      await userApi.deleteUserAPI(id); 
+      setSuccessMsg("User deleted successfully.");
+      loadData(); 
+    } catch (err) { 
+      setError(err?.response?.data?.message || err.message || "Failed to delete user");
+    }
   };
 
   const handleRoleChange = async (userId, newRole) => {
@@ -175,13 +182,14 @@ const UserManagement = () => {
       {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">{error}</div>}
       {successMsg && <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded">{successMsg}</div>}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <div className={`grid grid-cols-1 gap-8 ${user?.role === 'admin' ? 'xl:grid-cols-3' : ''}`}>
         
         {/* LEFT COLUMN: Actions */}
+        {user?.role === 'admin' && (
         <div className="space-y-6">
           
           {/* 1. CREATE USER FORM */}
-          {perms.canCreateUser && (
+          {perms.canCreateUser && user?.role === 'admin' && (
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <h2 className="text-lg font-bold mb-4 text-slate-800 dark:text-white">Add New User</h2>
                 <form onSubmit={handleAddUser} className="space-y-3">
@@ -196,7 +204,7 @@ const UserManagement = () => {
                     </div>
                     <input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} required className="w-full p-2 rounded border dark:bg-slate-900 dark:border-slate-600 dark:text-white text-sm" />
                     <hr className="border-slate-100 dark:border-slate-700 my-2"/>
-                    <p className="text-xs font-bold text-slate-400 uppercase">Student Profile Details</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase">User Profile Details</p>
                     <input name="fullName" placeholder="Full Name" value={formData.fullName} onChange={handleInputChange} className="w-full p-2 rounded border dark:bg-slate-900 dark:border-slate-600 dark:text-white text-sm" />
                     <div className="grid grid-cols-2 gap-3">
                         <input name="nameWithInitials" placeholder="Name with Initials" value={formData.nameWithInitials} onChange={handleInputChange} className="w-full p-2 rounded border dark:bg-slate-900 dark:border-slate-600 dark:text-white text-sm" />
@@ -216,7 +224,7 @@ const UserManagement = () => {
           )}
 
           {/* 2. BULK UPLOAD SECTION */}
-          {perms.canBulkUpload && (
+          {perms.canBulkUpload && user?.role === 'admin' && (
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <div className="flex justify-between items-center mb-2">
                     <h2 className="text-lg font-bold text-slate-800 dark:text-white">Bulk Import</h2>
@@ -227,7 +235,7 @@ const UserManagement = () => {
                         <span>⬇️</span> Download CSV Template
                     </button>
                 </div>
-                <p className="text-sm text-slate-500 mb-4">Upload a CSV file to add multiple students at once.</p>
+                <p className="text-sm text-slate-500 mb-4">Upload a CSV file to create multiple user accounts at once.</p>
                 <div className="relative">
                     <input 
                         type="file" 
@@ -240,9 +248,10 @@ const UserManagement = () => {
             </div>
           )}
         </div>
+        )}
 
         {/* RIGHT COLUMN: User List */}
-        <div className="xl:col-span-2">
+        <div className={user?.role === 'admin' ? 'xl:col-span-2' : ''}>
             <UserList 
                 users={users} 
                 loading={loading}

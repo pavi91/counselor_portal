@@ -40,8 +40,13 @@ const getStudentHostelDetails = async (req, res, next) => {
 
 const assignRoom = async (req, res, next) => {
   try {
-    const { userId, roomId } = req.body;
-    const allocation = await hostelService.assignRoom(parseInt(userId, 10), parseInt(roomId, 10));
+    const { userId, roomId, startDate, endDate } = req.body;
+    const allocation = await hostelService.assignRoom(
+      parseInt(userId, 10), 
+      parseInt(roomId, 10),
+      startDate,
+      endDate
+    );
     res.status(201).json(allocation);
   } catch (err) {
     next(err);

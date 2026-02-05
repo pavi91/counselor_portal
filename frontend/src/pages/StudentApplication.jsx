@@ -2,10 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import * as applicationApi from '../api/applicationApi';
+import * as userApi from '../api/userApi';
+import * as hostelApi from '../api/hostelApi';
 
 const StudentApplication = () => {
   const { user } = useAuth(); // Now contains full details from login
   const [application, setApplication] = useState(null);
+  const [hostelAllocation, setHostelAllocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -83,12 +86,58 @@ const StudentApplication = () => {
 
   useEffect(() => {
     loadMyApplication();
+    loadMyProfile();
   }, []);
+
+  const loadMyProfile = async () => {
+    try {
+      const profile = await userApi.getMyProfileAPI();
+      if (profile) {
+        setFormData(prev => ({
+          ...prev,
+          indexNumber: profile.index_number || profile.indexNumber || prev.indexNumber || '',
+          fullName: profile.full_name || profile.fullName || prev.fullName || '',
+          nameWithInitials: profile.name_with_initials || profile.nameWithInitials || prev.nameWithInitials || '',
+          permanentAddress: profile.permanent_address || profile.permanentAddress || prev.permanentAddress || '',
+          residentPhone: profile.resident_phone || profile.residentPhone || prev.residentPhone || '',
+          mobilePhone: profile.mobile_phone || profile.mobilePhone || prev.mobilePhone || '',
+          email: profile.email || prev.email || '',
+          gender: profile.gender || prev.gender || 'male'
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    setFormData(prev => ({
+      ...prev,
+      indexNumber: user.indexNumber || prev.indexNumber || '',
+      fullName: user.fullName || prev.fullName || '',
+      nameWithInitials: user.nameWithInitials || prev.nameWithInitials || '',
+      permanentAddress: user.permanentAddress || prev.permanentAddress || '',
+      residentPhone: user.residentPhone || prev.residentPhone || '',
+      mobilePhone: user.mobilePhone || prev.mobilePhone || '',
+      email: user.email || prev.email || '',
+      gender: user.gender || prev.gender || 'male'
+    }));
+  }, [user]);
 
   const loadMyApplication = async () => {
     try {
       const data = await applicationApi.getMyApplicationAPI(user.id);
       if (data) setApplication(data);
+      
+      // Load hostel allocation if exists
+      try {
+        const allocation = await hostelApi.getStudentHostelDetailsAPI(user.id);
+        if (allocation) setHostelAllocation(allocation);
+      } catch (err) {
+        // No allocation found, that's okay
+        console.log('No hostel allocation found');
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -99,7 +148,7 @@ const StudentApplication = () => {
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'file') {
-      setFormData(prev => ({ ...prev, [name]: files[0] ? files[0].name : '' }));
+      setFormData(prev => ({ ...prev, [name]: files && files[0] ? files[0] : null }));
     } else {
       setFormData(prev => ({ 
           ...prev, 
@@ -112,7 +161,16 @@ const StudentApplication = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await applicationApi.submitApplicationAPI(user.id, formData);
+      const formPayload = new FormData();
+      Object.entries(formData).forEach(([key, val]) => {
+        if (val === null || val === undefined) return;
+        if (val instanceof File) {
+          formPayload.append(key, val);
+        } else {
+          formPayload.append(key, val);
+        }
+      });
+      await applicationApi.submitApplicationAPI(user.id, formPayload);
       await loadMyApplication();
     } catch (err) {
       alert(err.message);
@@ -126,8 +184,8 @@ const StudentApplication = () => {
       <label className="block text-sm font-medium mb-1 dark:text-slate-300">
         📎 {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <input type="file" name={name} onChange={handleChange} required={required} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200"/>
-      {formData[name] && <p className="text-xs text-green-600 mt-1">Selected: {formData[name]}</p>}
+      <input type="file" name={name} onChange={handleChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200"/>
+      {formData[name] && <p className="text-xs text-green-600 mt-1">✓ Selected: {formData[name]?.name || formData[name]}</p>}
     </div>
   );
 
@@ -152,17 +210,67 @@ const StudentApplication = () => {
       <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Hostel Application Form</h1>
 
       {application ? (
-        <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm text-center">
-           <div className="inline-block p-4 rounded-full bg-blue-50 text-blue-600 mb-4">
-              <span className="text-4xl font-bold">{application.points}</span>
-              <span className="block text-xs uppercase font-bold mt-1">Total Score</span>
-           </div>
-           <div className="mb-6">
-            <span className={`px-4 py-2 rounded-full uppercase font-bold text-sm ${application.status === 'approved' ? 'bg-green-100 text-green-700' : application.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-              Status: {application.status}
-            </span>
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm text-center">
+            <div className="mb-6">
+              <span className={`px-4 py-2 rounded-full uppercase font-bold text-sm ${application.status === 'approved' ? 'bg-green-100 text-green-700' : application.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                Status: {application.status}
+              </span>
+            </div>
+            <p className="text-slate-500 dark:text-slate-400">Submitted on {new Date(application.submission_date || application.submissionDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            {application.status === 'pending' && (
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-4">
+                ℹ️ Your application is under review. You cannot submit a new application while one is pending.
+              </p>
+            )}
           </div>
-          <p className="text-slate-500">Submitted on {application.submissionDate}</p>
+
+          {/* Hostel Allocation Info */}
+          {hostelAllocation && (
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 rounded-xl shadow-sm border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-blue-600 text-white rounded-full">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">Room Allocated</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">You have been assigned a hostel room</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">Room Number</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{hostelAllocation.roomNumber}</p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">Floor</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{hostelAllocation.floor}</p>
+                </div>
+                {hostelAllocation.startDate && (
+                  <div className="bg-white dark:bg-slate-800 p-4 rounded-lg">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">Start Date</p>
+                    <p className="text-lg font-medium text-slate-700 dark:text-slate-300">{hostelAllocation.startDate}</p>
+                  </div>
+                )}
+                {hostelAllocation.endDate && (
+                  <div className="bg-white dark:bg-slate-800 p-4 rounded-lg">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">End Date</p>
+                    <p className="text-lg font-medium text-slate-700 dark:text-slate-300">{hostelAllocation.endDate}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!hostelAllocation && application.status === 'approved' && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-xl border border-yellow-200 dark:border-yellow-800">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                ⏳ Your application has been approved! Room allocation is pending.
+              </p>
+            </div>
+          )}
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">

@@ -52,8 +52,30 @@ const updateUserRole = async (userId, role) => {
 };
 
 const deleteUser = async (userId) => {
+  // Check if user has any dependencies
+  const dependencies = await userRepository.checkUserDependencies(userId);
+  
+  if (dependencies.hasDependencies) {
+    const err = new Error(
+      `Cannot delete user. This user has ${dependencies.count} active ${dependencies.type}. ` +
+      `Please remove all associated ${dependencies.type} before deleting the user.`
+    );
+    err.status = 409; // Conflict status code
+    throw err;
+  }
+
   await userRepository.deleteUser(userId);
-  return { success: true };
+  return { success: true, message: 'User deleted successfully' };
+};
+
+const getUserById = async (userId) => {
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    const err = new Error('User not found');
+    err.status = 404;
+    throw err;
+  }
+  return user;
 };
 
 const bulkCreateUsers = async (users) => {
@@ -70,11 +92,50 @@ const bulkCreateUsers = async (users) => {
   return results;
 };
 
+const changePassword = async (userId, currentPassword, newPassword) => {
+  if (!currentPassword || !newPassword) {
+    const err = new Error('Current password and new password are required');
+    err.status = 400;
+    throw err;
+  }
+  if (newPassword.length < 3) {
+    const err = new Error('New password must be at least 3 characters');
+    err.status = 400;
+    throw err;
+  }
+
+  const passwordHash = await userRepository.getPasswordHashById(userId);
+  if (!passwordHash) {
+    const err = new Error('User not found');
+    err.status = 404;
+    throw err;
+  }
+
+  let isMatch = false;
+  if (passwordHash && passwordHash.startsWith('$2')) {
+    isMatch = await bcrypt.compare(currentPassword, passwordHash);
+  } else {
+    isMatch = currentPassword === passwordHash;
+  }
+
+  if (!isMatch) {
+    const err = new Error('Current password is incorrect');
+    err.status = 401;
+    throw err;
+  }
+
+  const newHash = await bcrypt.hash(newPassword, 10);
+  await userRepository.updatePasswordHash(userId, newHash);
+  return { success: true, message: 'Password updated successfully' };
+};
+
 module.exports = {
   getUsers,
   getUsersByRole,
   createUser,
   updateUserRole,
   deleteUser,
-  bulkCreateUsers
+  bulkCreateUsers,
+  getUserById,
+  changePassword
 };

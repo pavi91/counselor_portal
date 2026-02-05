@@ -14,6 +14,19 @@ export const getUsersByRoleAPI = async (role, query = '') => {
   return getUsersAPI(query, role);
 };
 
+export const getMyProfileAPI = async () => {
+  const response = await apiClient.get('/users/me');
+  return response.data;
+};
+
+export const changeMyPasswordAPI = async (currentPassword, newPassword) => {
+  const response = await apiClient.patch('/users/me/password', {
+    currentPassword,
+    newPassword
+  });
+  return response.data;
+};
+
 export const createUserAPI = async (user) => {
   const response = await apiClient.post('/users', user);
   return response.data;

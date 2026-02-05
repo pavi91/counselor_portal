@@ -2,6 +2,8 @@ const express = require('express');
 const applicationController = require('../controllers/applicationController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const rbacMiddleware = require('../middlewares/rbacMiddleware');
+const { uploadApplicationFiles } = require('../middlewares/uploadMiddleware');
+const { validateApplicationSubmit } = require('../middlewares/validationMiddleware');
 
 const router = express.Router();
 
@@ -116,7 +118,7 @@ router.get('/user/:userId', authMiddleware, rbacMiddleware(['applications.view_o
  *       500:
  *         description: Server error
  */
-router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit'), applicationController.submitApplication);
+router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit'), uploadApplicationFiles, validateApplicationSubmit, applicationController.submitApplication);
 
 /**
  * @swagger

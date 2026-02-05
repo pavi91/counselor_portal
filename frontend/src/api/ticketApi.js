@@ -11,22 +11,30 @@ export const getCounselorTicketsAPI = async (counselorId) => {
 };
 
 export const createTicketAPI = async (studentId, counselorId, subject, initialMessage, attachment = null) => {
-  const response = await apiClient.post('/tickets', {
-    studentId,
-    counselorId,
-    subject,
-    initialMessage,
-    attachment: attachment ? attachment.name : null
-  });
+  const formData = new FormData();
+  formData.append('studentId', studentId);
+  formData.append('counselorId', counselorId);
+  formData.append('subject', subject);
+  formData.append('initialMessage', initialMessage);
+  
+  if (attachment) {
+    formData.append('attachment', attachment);
+  }
+  
+  const response = await apiClient.post('/tickets', formData);
   return response.data;
 };
 
 export const replyToTicketAPI = async (ticketId, senderId, message, attachment = null) => {
-  const response = await apiClient.post(`/tickets/${ticketId}/reply`, {
-    senderId,
-    message,
-    attachment: attachment ? attachment.name : null
-  });
+  const formData = new FormData();
+  formData.append('senderId', senderId);
+  formData.append('message', message);
+  
+  if (attachment) {
+    formData.append('attachment', attachment);
+  }
+  
+  const response = await apiClient.post(`/tickets/${ticketId}/reply`, formData);
   return response.data;
 };
 

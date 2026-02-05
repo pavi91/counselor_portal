@@ -25,8 +25,8 @@ export const getStudentHostelDetailsAPI = async (userId) => {
 
 // --- ACTION METHODS ---
 
-export const assignRoomAPI = async (userId, roomId) => {
-  const response = await apiClient.post('/hostels/assign', { userId, roomId });
+export const assignRoomAPI = async (userId, roomId, startDate = null, endDate = null) => {
+  const response = await apiClient.post('/hostels/assign', { userId, roomId, startDate, endDate });
   return response.data;
 };
 

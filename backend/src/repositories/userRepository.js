@@ -24,6 +24,14 @@ const findById = async (id) => {
   return rows[0] || null;
 };
 
+const getPasswordHashById = async (id) => {
+  const [rows] = await db.query(
+    `SELECT password_hash FROM users WHERE id = ?`,
+    [id]
+  );
+  return rows[0] ? rows[0].password_hash : null;
+};
+
 const searchUsers = async (query) => {
   const baseSelect = `SELECT u.id, u.email, u.name, u.role_id, u.index_number, 
                              u.full_name, u.mobile_phone, r.name AS role
@@ -98,8 +106,43 @@ const updateUserRole = async (userId, roleId) => {
   await db.query(`UPDATE users SET role_id = ? WHERE id = ?`, [roleId, userId]);
 };
 
+const checkUserDependencies = async (userId) => {
+  // Check for applications
+  const [applications] = await db.query(
+    `SELECT COUNT(*) as count FROM applications WHERE user_id = ?`,
+    [userId]
+  );
+  if (applications[0].count > 0) {
+    return { hasDependencies: true, type: 'applications', count: applications[0].count };
+  }
+
+  // Check for allocations
+  const [allocations] = await db.query(
+    `SELECT COUNT(*) as count FROM allocations WHERE user_id = ?`,
+    [userId]
+  );
+  if (allocations[0].count > 0) {
+    return { hasDependencies: true, type: 'allocations', count: allocations[0].count };
+  }
+
+  // Check for tickets
+  const [tickets] = await db.query(
+    `SELECT COUNT(*) as count FROM tickets WHERE user_id = ? OR assigned_to = ?`,
+    [userId, userId]
+  );
+  if (tickets[0].count > 0) {
+    return { hasDependencies: true, type: 'tickets', count: tickets[0].count };
+  }
+
+  return { hasDependencies: false };
+};
+
 const deleteUser = async (userId) => {
   await db.query(`DELETE FROM users WHERE id = ?`, [userId]);
+};
+
+const updatePasswordHash = async (userId, passwordHash) => {
+  await db.query(`UPDATE users SET password_hash = ? WHERE id = ?`, [passwordHash, userId]);
 };
 
 const getRoleIdByName = async (roleName) => {
@@ -110,10 +153,13 @@ const getRoleIdByName = async (roleName) => {
 module.exports = {
   findByEmail,
   findById,
+  getPasswordHashById,
   searchUsers,
   getUsersByRole,
   createUser,
   updateUserRole,
   deleteUser,
+  checkUserDependencies,
+  updatePasswordHash,
   getRoleIdByName
 };

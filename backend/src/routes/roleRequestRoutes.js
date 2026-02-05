@@ -2,6 +2,8 @@ const express = require('express');
 const roleRequestController = require('../controllers/roleRequestController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const rbacMiddleware = require('../middlewares/rbacMiddleware');
+const { uploadRoleRequestAttachment } = require('../middlewares/uploadMiddleware');
+const { validateRoleRequest } = require('../middlewares/validationMiddleware');
 
 const router = express.Router();
 
@@ -76,7 +78,7 @@ router.get('/', authMiddleware, rbacMiddleware('role_requests.view_all'), roleRe
  *       500:
  *         description: Server error
  */
-router.post('/', authMiddleware, rbacMiddleware('role_requests.create'), roleRequestController.createRoleRequest);
+router.post('/', authMiddleware, rbacMiddleware('role_requests.create'), uploadRoleRequestAttachment, validateRoleRequest, roleRequestController.createRoleRequest);
 
 /**
  * @swagger
