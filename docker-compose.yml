@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # MySQL Database
+  # MySQL Database (PRIVATE)
   db:
     image: mysql:8.0
     container_name: counselor_portal_db
@@ -11,17 +9,16 @@ services:
       MYSQL_DATABASE: ${DB_NAME:-counselor_portal}
       MYSQL_USER: ${DB_USER:-db_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-Str0ng!Pass#2026}
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./backend/sql/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     networks:
-      - counselor_network
+      - private_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
       retries: 10
 
   # Backend API
@@ -33,7 +30,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: ${BACKEND_PORT:-5000}
+      PORT: ${BACKEND_PORT:-5001}
       DB_HOST: db
       DB_PORT: 3306
       DB_USER: ${DB_USER:-db_user}
@@ -42,7 +39,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-b94bedc132ef420bb17256a0bafe1e5d880225a9e8dc4399b57012a070617a42}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
     ports:
-      - "${BACKEND_PORT:-5000}:${BACKEND_PORT:-5000}"
+      - "${BACKEND_PORT:-5001}:${BACKEND_PORT:-5001}"
     depends_on:
       db:
         condition: service_healthy
@@ -50,7 +47,8 @@ services:
       - ./backend/src:/app/src
       - ./backend/filestore:/app/filestore
     networks:
-      - counselor_network
+      - private_network
+      - public_network
 
   # Frontend UI
   frontend:
@@ -58,22 +56,27 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5001/api}
     container_name: counselor_portal_frontend
     restart: unless-stopped
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:5001/api}
+    # Map host port 3001 to container port 80 (typical for production React builds)
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT:-3001}:80"
     depends_on:
       - backend
     networks:
-      - counselor_network
+      - public_network
 
 volumes:
   db_data:
     driver: local
 
 networks:
-  counselor_network:
+  public_network:
     driver: bridge
+
+  private_network:
+    driver: bridge
+    internal: true   # MySQL only, not reachable from host
