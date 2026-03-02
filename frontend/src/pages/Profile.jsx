@@ -15,6 +15,13 @@ const Profile = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Editable profile fields
+  const [editMode, setEditMode] = useState(false);
+  const [permanentAddress, setPermanentAddress] = useState('');
+  const [residentPhone, setResidentPhone] = useState('');
+  const [mobilePhone, setMobilePhone] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
   useEffect(() => {
     const loadProfile = async () => {
       setLoading(true);
@@ -22,6 +29,9 @@ const Profile = () => {
       try {
         const data = await userApi.getMyProfileAPI();
         setProfile(data);
+        setPermanentAddress(data.permanent_address || data.permanentAddress || '');
+        setResidentPhone(data.resident_phone || data.residentPhone || '');
+        setMobilePhone(data.mobile_phone || data.mobilePhone || '');
       } catch (err) {
         setError('Failed to load profile');
       } finally {
@@ -31,6 +41,37 @@ const Profile = () => {
 
     loadProfile();
   }, []);
+
+  const handleSaveProfile = async () => {
+    setError('');
+    setSuccessMsg('');
+    setSavingProfile(true);
+    try {
+      const updated = await userApi.updateMyProfileAPI({
+        permanentAddress,
+        residentPhone,
+        mobilePhone
+      });
+      setProfile(updated);
+      setPermanentAddress(updated.permanent_address || updated.permanentAddress || '');
+      setResidentPhone(updated.resident_phone || updated.residentPhone || '');
+      setMobilePhone(updated.mobile_phone || updated.mobilePhone || '');
+      setSuccessMsg('Profile updated successfully');
+      setEditMode(false);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setPermanentAddress(profile?.permanent_address || profile?.permanentAddress || '');
+    setResidentPhone(profile?.resident_phone || profile?.residentPhone || '');
+    setMobilePhone(profile?.mobile_phone || profile?.mobilePhone || '');
+    setEditMode(false);
+    setError('');
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -83,7 +124,17 @@ const Profile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-              <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Profile Details</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-slate-800 dark:text-white">Profile Details</h2>
+                {!editMode && (
+                  <button
+                    onClick={() => setEditMode(true)}
+                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <Detail label="Name" value={displayProfile.name || displayProfile.full_name || displayProfile.fullName || '—'} />
                 <Detail label="Email" value={displayProfile.email || '—'} />
@@ -91,11 +142,46 @@ const Profile = () => {
                 <Detail label="Index Number" value={displayProfile.index_number || displayProfile.indexNumber || '—'} />
                 <Detail label="Full Name" value={displayProfile.full_name || displayProfile.fullName || '—'} />
                 <Detail label="Name with Initials" value={displayProfile.name_with_initials || displayProfile.nameWithInitials || '—'} />
-                <Detail label="Permanent Address" value={displayProfile.permanent_address || displayProfile.permanentAddress || '—'} />
-                <Detail label="Resident Phone" value={displayProfile.resident_phone || displayProfile.residentPhone || '—'} />
-                <Detail label="Mobile Phone" value={displayProfile.mobile_phone || displayProfile.mobilePhone || '—'} />
+
+                {editMode ? (
+                  <EditableField label="Permanent Address" value={permanentAddress} onChange={setPermanentAddress} />
+                ) : (
+                  <Detail label="Permanent Address" value={displayProfile.permanent_address || displayProfile.permanentAddress || '—'} />
+                )}
+
+                {editMode ? (
+                  <EditableField label="Resident Phone" value={residentPhone} onChange={setResidentPhone} />
+                ) : (
+                  <Detail label="Resident Phone" value={displayProfile.resident_phone || displayProfile.residentPhone || '—'} />
+                )}
+
+                {editMode ? (
+                  <EditableField label="Mobile Phone" value={mobilePhone} onChange={setMobilePhone} />
+                ) : (
+                  <Detail label="Mobile Phone" value={displayProfile.mobile_phone || displayProfile.mobilePhone || '—'} />
+                )}
+
                 <Detail label="Gender" value={displayProfile.gender || '—'} />
               </div>
+
+              {editMode && (
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={savingProfile}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 text-sm font-semibold transition disabled:opacity-60"
+                  >
+                    {savingProfile ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={savingProfile}
+                    className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded px-4 py-2 text-sm font-semibold transition disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -157,6 +243,18 @@ const Detail = ({ label, value }) => (
   <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 border border-slate-100 dark:border-slate-700">
     <div className="text-xs uppercase text-slate-400 font-semibold mb-1">{label}</div>
     <div className="text-slate-700 dark:text-slate-200 font-medium break-words">{value}</div>
+  </div>
+);
+
+const EditableField = ({ label, value, onChange }) => (
+  <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 border border-blue-300 dark:border-blue-600">
+    <div className="text-xs uppercase text-blue-500 font-semibold mb-1">{label}</div>
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full p-1.5 rounded border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white text-sm font-medium"
+    />
   </div>
 );
 

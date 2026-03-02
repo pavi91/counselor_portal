@@ -64,7 +64,7 @@ WHERE r.name = 'staff' AND p.name IN (
   'applications.view_all', 'applications.review',
   'hostels.view', 'hostels.view_stats', 'hostels.manage', 'hostels.assign',
   'tickets.view_assigned', 'tickets.reply', 'tickets.resolve',
-  'role_requests.view_all', 'role_requests.process',
+  'role_requests.view_all', 'role_requests.process', 'role_requests.create',
   'auth.login', 'auth.verify'
 )
 ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);

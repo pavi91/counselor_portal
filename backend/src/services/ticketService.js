@@ -1,12 +1,17 @@
 const ticketRepository = require('../repositories/ticketRepository');
+const { encryptTicketMessage, decryptTicketMessage } = require('../utils/ticketEncryption');
 
 const hydrateTickets = async (tickets) => {
   const result = [];
   for (const ticket of tickets) {
     const messages = await ticketRepository.getMessagesByTicketId(ticket.id);
+    const decryptedMessages = messages.map((message) => ({
+      ...message,
+      text: decryptTicketMessage(message.text)
+    }));
     result.push({
       ...ticket,
-      messages
+      messages: decryptedMessages
     });
   }
   return result;
@@ -33,14 +38,18 @@ const createTicket = async (studentId, counselorId, subject, initialMessage, att
   await ticketRepository.addMessage({
     ticketId,
     senderId: studentId,
-    text: initialMessage,
+    text: encryptTicketMessage(initialMessage),
     attachment: attachment || null,
     createdAt: new Date().toLocaleString()
   });
 
   const ticket = await ticketRepository.findTicketById(ticketId);
   const messages = await ticketRepository.getMessagesByTicketId(ticketId);
-  return { ...ticket, messages };
+  const decryptedMessages = messages.map((message) => ({
+    ...message,
+    text: decryptTicketMessage(message.text)
+  }));
+  return { ...ticket, messages: decryptedMessages };
 };
 
 const replyToTicket = async (ticketId, senderId, message, attachment) => {
@@ -54,20 +63,28 @@ const replyToTicket = async (ticketId, senderId, message, attachment) => {
   await ticketRepository.addMessage({
     ticketId,
     senderId,
-    text: message,
+    text: encryptTicketMessage(message),
     attachment: attachment || null,
     createdAt: new Date().toLocaleString()
   });
 
   const messages = await ticketRepository.getMessagesByTicketId(ticketId);
-  return { ...ticket, messages };
+  const decryptedMessages = messages.map((message) => ({
+    ...message,
+    text: decryptTicketMessage(message.text)
+  }));
+  return { ...ticket, messages: decryptedMessages };
 };
 
 const updateTicketStatus = async (ticketId, status) => {
   await ticketRepository.updateTicketStatus(ticketId, status);
   const ticket = await ticketRepository.findTicketById(ticketId);
   const messages = await ticketRepository.getMessagesByTicketId(ticketId);
-  return { ...ticket, messages };
+  const decryptedMessages = messages.map((message) => ({
+    ...message,
+    text: decryptTicketMessage(message.text)
+  }));
+  return { ...ticket, messages: decryptedMessages };
 };
 
 module.exports = {
