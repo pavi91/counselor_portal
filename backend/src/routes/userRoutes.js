@@ -112,6 +112,48 @@ router.patch('/me/password', authMiddleware, userController.changeMyPassword);
 
 /**
  * @swagger
+ * /api/users/me/profile:
+ *   patch:
+ *     summary: Update current user profile
+ *     description: Update the authenticated user's editable profile fields (permanent address, resident phone, mobile phone)
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               permanentAddress:
+ *                 type: string
+ *                 example: 123 Main St, Colombo
+ *               residentPhone:
+ *                 type: string
+ *                 example: '0112345678'
+ *               mobilePhone:
+ *                 type: string
+ *                 example: '0771234567'
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.patch('/me/profile', authMiddleware, userController.updateMyProfile);
+
+/**
+ * @swagger
  * /api/users:
  *   post:
  *     summary: Create a new user

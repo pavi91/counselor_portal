@@ -133,6 +133,25 @@ const changePassword = async (userId, currentPassword, newPassword) => {
   return { success: true, message: 'Password updated successfully' };
 };
 
+const updateProfile = async (userId, profileData) => {
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    const err = new Error('User not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const { permanentAddress, residentPhone, mobilePhone } = profileData;
+
+  await userRepository.updateProfile(userId, {
+    permanentAddress: permanentAddress !== undefined ? permanentAddress : user.permanent_address,
+    residentPhone: residentPhone !== undefined ? residentPhone : user.resident_phone,
+    mobilePhone: mobilePhone !== undefined ? mobilePhone : user.mobile_phone
+  });
+
+  return userRepository.findById(userId);
+};
+
 module.exports = {
   getUsers,
   getUsersByRole,
@@ -141,5 +160,6 @@ module.exports = {
   deleteUser,
   bulkCreateUsers,
   getUserById,
-  changePassword
+  changePassword,
+  updateProfile
 };

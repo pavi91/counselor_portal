@@ -27,6 +27,11 @@ export const changeMyPasswordAPI = async (currentPassword, newPassword) => {
   return response.data;
 };
 
+export const updateMyProfileAPI = async (profileData) => {
+  const response = await apiClient.patch('/users/me/profile', profileData);
+  return response.data;
+};
+
 export const createUserAPI = async (user) => {
   const response = await apiClient.post('/users', user);
   return response.data;

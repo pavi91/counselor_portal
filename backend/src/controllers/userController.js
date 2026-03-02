@@ -102,6 +102,20 @@ const changeMyPassword = async (req, res, next) => {
   }
 };
 
+const updateMyProfile = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
+    }
+    const { permanentAddress, residentPhone, mobilePhone } = req.body;
+    const user = await userService.updateProfile(userId, { permanentAddress, residentPhone, mobilePhone });
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getUsers,
   createUser,
@@ -109,5 +123,6 @@ module.exports = {
   deleteUser,
   bulkCreateUsers,
   getMe,
-  changeMyPassword
+  changeMyPassword,
+  updateMyProfile
 };

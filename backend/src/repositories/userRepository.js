@@ -145,6 +145,13 @@ const updatePasswordHash = async (userId, passwordHash) => {
   await db.query(`UPDATE users SET password_hash = ? WHERE id = ?`, [passwordHash, userId]);
 };
 
+const updateProfile = async (userId, { permanentAddress, residentPhone, mobilePhone }) => {
+  await db.query(
+    `UPDATE users SET permanent_address = ?, resident_phone = ?, mobile_phone = ? WHERE id = ?`,
+    [permanentAddress, residentPhone, mobilePhone, userId]
+  );
+};
+
 const getRoleIdByName = async (roleName) => {
   const [rows] = await db.query(`SELECT id FROM roles WHERE name = ?`, [roleName]);
   return rows[0] ? rows[0].id : null;
@@ -161,5 +168,6 @@ module.exports = {
   deleteUser,
   checkUserDependencies,
   updatePasswordHash,
+  updateProfile,
   getRoleIdByName
 };

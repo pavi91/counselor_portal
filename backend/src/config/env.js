@@ -14,7 +14,8 @@ const env = {
   jwt: {
     secret: process.env.JWT_SECRET || 'dev_secret',
     expiresIn: process.env.JWT_EXPIRES_IN || '1h'
-  }
+  },
+  ticketEncryptionKey: process.env.TICKET_ENCRYPTION_KEY || ''
 };
 
 module.exports = env;

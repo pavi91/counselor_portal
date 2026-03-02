@@ -9,7 +9,7 @@ const options = {
       description: 'Complete REST API documentation for the Counselor Portal application. This API manages authentication, user management, hostel allocation, application processing, and support ticket systems.',
       contact: {
         name: 'API Support',
-        email: 'support@example.com'
+        email: 'pavimeth2@gmail.com'
       }
     },
     servers: [
