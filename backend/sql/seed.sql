@@ -47,7 +47,16 @@ INSERT INTO permissions (name, description, resource, action) VALUES
 
   -- Authentication
   ('auth.login', 'Login to system', 'auth', 'login'),
-  ('auth.verify', 'Verify authentication token', 'auth', 'verify')
+  ('auth.verify', 'Verify authentication token', 'auth', 'verify'),
+
+  -- Reports
+  ('reports.view', 'View system reports', 'reports', 'view'),
+
+  -- FAQ Management
+  ('faqs.view', 'View FAQ questions', 'faqs', 'view'),
+  ('faqs.manage', 'Create, edit, delete FAQ questions', 'faqs', 'manage'),
+  ('faqs.use', 'Use FAQ questions (log usage)', 'faqs', 'use'),
+  ('faqs.report', 'View FAQ reports and export CSV', 'faqs', 'report')
 ON DUPLICATE KEY UPDATE description = VALUES(description);
 
 -- Assign Permissions to Admin (full access)
@@ -78,7 +87,8 @@ WHERE r.name = 'counselor' AND p.name IN (
   'hostels.view', 'hostels.view_stats',
   'tickets.view_assigned', 'tickets.reply', 'tickets.resolve',
   'role_requests.create',
-  'auth.login', 'auth.verify'
+  'auth.login', 'auth.verify',
+  'faqs.view', 'faqs.manage'
 )
 ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
 
@@ -91,7 +101,8 @@ WHERE r.name = 'student' AND p.name IN (
   'hostels.view', 'hostels.view_allocation',
   'tickets.create', 'tickets.view_own', 'tickets.reply',
   'role_requests.create',
-  'auth.login', 'auth.verify'
+  'auth.login', 'auth.verify',
+  'faqs.view', 'faqs.use'
 )
 ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
 

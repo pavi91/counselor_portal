@@ -57,6 +57,11 @@ export const getRoleRequestsAPI = async () => {
   return response.data;
 };
 
+export const getMyRoleRequestsAPI = async () => {
+  const response = await apiClient.get('/role-requests/mine');
+  return response.data;
+};
+
 export const createRoleRequestAPI = async (userId, message, attachment) => {
   const response = await apiClient.post('/role-requests', {
     userId,

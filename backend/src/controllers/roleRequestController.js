@@ -37,8 +37,22 @@ const processRoleRequest = async (req, res, next) => {
   }
 };
 
+const getMyRoleRequests = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
+    }
+    const requests = await roleRequestService.getMyRoleRequests(userId);
+    res.json(requests);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getRoleRequests,
   createRoleRequest,
-  processRoleRequest
+  processRoleRequest,
+  getMyRoleRequests
 };

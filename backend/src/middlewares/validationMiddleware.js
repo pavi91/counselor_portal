@@ -182,6 +182,51 @@ const validateRoomCreate = (req, res, next) => {
   next();
 };
 
+// FAQ create validation
+const validateFaqCreate = (req, res, next) => {
+  const { question, answer, category } = req.body;
+  const errors = [];
+
+  if (!question || question.trim().length === 0) {
+    errors.push('Question is required');
+  }
+  if (!answer || answer.trim().length === 0) {
+    errors.push('Answer is required');
+  }
+  if (!category || category.trim().length === 0) {
+    errors.push('Category is required');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: 'Validation Error', messages: errors });
+  }
+  next();
+};
+
+// FAQ update validation
+const validateFaqUpdate = (req, res, next) => {
+  const { question, answer, category } = req.body;
+  const errors = [];
+
+  if (!question || question.trim().length === 0) {
+    errors.push('Question is required');
+  }
+  if (!answer || answer.trim().length === 0) {
+    errors.push('Answer is required');
+  }
+  if (!category || category.trim().length === 0) {
+    errors.push('Category is required');
+  }
+  if (req.body.isActive === undefined || req.body.isActive === null) {
+    errors.push('Active status is required');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: 'Validation Error', messages: errors });
+  }
+  next();
+};
+
 module.exports = {
   validateUserCreate,
   validateApplicationSubmit,
@@ -189,5 +234,7 @@ module.exports = {
   validateTicketReply,
   validateRoleRequest,
   validateHostelAssignment,
-  validateRoomCreate
+  validateRoomCreate,
+  validateFaqCreate,
+  validateFaqUpdate
 };

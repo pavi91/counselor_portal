@@ -11,6 +11,8 @@ const roleRequestRoutes = require('./routes/roleRequestRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const hostelRoutes = require('./routes/hostelRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const faqRoutes = require('./routes/faqRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 const db = require('./config/db');
 
@@ -60,6 +62,8 @@ app.use('/api/role-requests', roleRequestRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/hostels', hostelRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/faqs', faqRoutes);
 
 app.use(errorHandler);
 

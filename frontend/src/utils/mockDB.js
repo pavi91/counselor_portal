@@ -18,6 +18,8 @@ export const ROLE_PERMISSIONS = {
     canApplyHostel: false,
     canViewTickets: true,
     canManageRoleRequests: true,
+    canViewReports: true,
+    canViewFaqReports: true,
   },
   staff: {
     canViewUsers: true,
@@ -48,6 +50,7 @@ export const ROLE_PERMISSIONS = {
     canApplyHostel: false,
     canViewTickets: true,
     canManageTickets: true,
+    canManageFaqs: true,
   },
   student: {
     canViewUsers: false,

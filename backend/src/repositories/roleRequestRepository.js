@@ -37,9 +37,27 @@ const findById = async (id) => {
   return rows[0] || null;
 };
 
+const findByUserId = async (userId) => {
+  const [rows] = await db.query(
+    `SELECT * FROM role_requests WHERE user_id = ? ORDER BY created_at DESC`,
+    [userId]
+  );
+  return rows;
+};
+
+const findActiveByUserId = async (userId) => {
+  const [rows] = await db.query(
+    `SELECT * FROM role_requests WHERE user_id = ? AND status IN ('pending', 'approved') ORDER BY created_at DESC LIMIT 1`,
+    [userId]
+  );
+  return rows[0] || null;
+};
+
 module.exports = {
   getAll,
   findPendingByUserId,
+  findByUserId,
+  findActiveByUserId,
   create,
   updateStatus,
   findById

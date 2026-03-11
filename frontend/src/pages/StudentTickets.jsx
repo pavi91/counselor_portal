@@ -3,18 +3,20 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import * as ticketApi from '../api/ticketApi';
 import * as userApi from '../api/userApi';
+import * as faqApi from '../api/faqApi';
 
 const StudentTickets = () => {
   const { user } = useAuth();
   
   const [tickets, setTickets] = useState([]);
   const [counselors, setCounselors] = useState([]);
+  const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
   
   // Modal State for creating new ticket
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ counselorId: '', subject: '', message: '', attachment: null });
+  const [formData, setFormData] = useState({ counselorId: '', subject: '', message: '', attachment: null, selectedFaqId: '' });
   const [sending, setSending] = useState(false);
   
   // Reply State
@@ -35,6 +37,14 @@ const StudentTickets = () => {
       // Fetch only counselors using role-based filtering
       const counselorList = await userApi.getUsersByRoleAPI('counselor');
       setCounselors(counselorList);
+
+      // Fetch FAQ questions
+      try {
+        const faqList = await faqApi.getAllFaqsAPI();
+        setFaqs(faqList);
+      } catch (e) {
+        console.error('Failed to load FAQs:', e);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -58,6 +68,14 @@ const StudentTickets = () => {
     e.preventDefault();
     setSending(true);
     try {
+      // Log FAQ usage if a FAQ was selected
+      if (formData.selectedFaqId) {
+        try {
+          await faqApi.logFaqUsageAPI(formData.selectedFaqId);
+        } catch (e) {
+          console.error('Failed to log FAQ usage:', e);
+        }
+      }
       await ticketApi.createTicketAPI(
           user.id, 
           formData.counselorId, 
@@ -66,7 +84,7 @@ const StudentTickets = () => {
           formData.attachment
       );
       setIsModalOpen(false);
-      setFormData({ counselorId: '', subject: '', message: '', attachment: null });
+      setFormData({ counselorId: '', subject: '', message: '', attachment: null, selectedFaqId: '' });
       loadData(); 
     } catch (err) {
       alert("Failed to create ticket");
@@ -266,6 +284,58 @@ const StudentTickets = () => {
                 </select>
               </div>
               
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">Quick Question (FAQ)</label>
+                <select
+                  value={formData.selectedFaqId}
+                  onChange={e => {
+                    const faqId = e.target.value;
+                    if (faqId) {
+                      const faq = faqs.find(f => String(f.id) === faqId);
+                      if (faq) {
+                        setFormData({
+                          ...formData,
+                          selectedFaqId: faqId,
+                          subject: faq.question,
+                          message: faq.question
+                        });
+                      }
+                    } else {
+                      setFormData({ ...formData, selectedFaqId: '' });
+                    }
+                  }}
+                  className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"
+                >
+                  <option value="">-- Or type your own question below --</option>
+                  {Object.entries(
+                    faqs.reduce((acc, faq) => {
+                      if (!acc[faq.category]) acc[faq.category] = [];
+                      acc[faq.category].push(faq);
+                      return acc;
+                    }, {})
+                  ).map(([category, items]) => (
+                    <optgroup key={category} label={category}>
+                      {items.map(faq => (
+                        <option key={faq.id} value={faq.id}>{faq.question}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+
+                {/* Show pre-configured answer when a FAQ is selected */}
+                {formData.selectedFaqId && (() => {
+                  const selectedFaq = faqs.find(f => String(f.id) === formData.selectedFaqId);
+                  if (!selectedFaq) return null;
+                  return (
+                    <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase mb-1">Counselor's Answer</p>
+                      <p className="text-sm text-blue-900 dark:text-blue-100 leading-relaxed">{selectedFaq.answer}</p>
+                      <p className="text-xs text-blue-500 dark:text-blue-400 mt-2">Still need help? Fill out the form below to open a ticket.</p>
+                    </div>
+                  );
+                })()}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-slate-300">Subject</label>
                 <input 

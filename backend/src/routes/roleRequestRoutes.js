@@ -35,6 +35,32 @@ router.get('/', authMiddleware, rbacMiddleware('role_requests.view_all'), roleRe
 
 /**
  * @swagger
+ * /api/role-requests/mine:
+ *   get:
+ *     summary: Get my role requests
+ *     description: Retrieve the authenticated user's own role request history
+ *     tags:
+ *       - Role Requests
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's role requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/RoleRequest'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/mine', authMiddleware, rbacMiddleware('role_requests.create'), roleRequestController.getMyRoleRequests);
+
+/**
+ * @swagger
  * /api/role-requests:
  *   post:
  *     summary: Create a role request
