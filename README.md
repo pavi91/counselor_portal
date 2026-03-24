@@ -16,6 +16,8 @@ A comprehensive student counselor management system with hostel allocation, appl
 - [Features](#features)
 - [Project Structure](#project-structure)
 
+> **New to the codebase?** Start with [CODEBASE_OVERVIEW.md](./CODEBASE_OVERVIEW.md) for a focused explanation of the directory structure, key technologies, and architectural patterns.
+
 ---
 
 ## 🎯 Project Overview
@@ -81,6 +83,16 @@ npm run dev
 ## 📚 Documentation Map
 
 ### Getting Started
+
+#### [CODEBASE_OVERVIEW.md](./CODEBASE_OVERVIEW.md) ⭐ NEW TO THE CODEBASE? START HERE
+Focused developer orientation guide.
+- What the application does
+- Annotated directory structure (backend + frontend)
+- Full technology stack with versions
+- Layered architecture and request lifecycle diagrams
+- Database schema summary
+- Key files to read first
+- Local development commands
 
 #### [README (Backend)](./backend/README.md)
 Backend-specific setup and development guide.
@@ -783,6 +795,7 @@ This project is part of the University of Moratuwa Counselor Portal system.
 
 | Document | Purpose | Read Time | Audience |
 |----------|---------|-----------|----------|
+| **CODEBASE_OVERVIEW.md** | **Codebase structure, technologies, architecture** | **10 min** | **All** |
 | SWAGGER_DOCUMENTATION.md | API testing & documentation | 15 min | All |
 | API_ENDPOINTS.md | API reference | 10 min | Developers |
 | RBAC_QUICK_REFERENCE.md | RBAC overview | 5 min | All |
