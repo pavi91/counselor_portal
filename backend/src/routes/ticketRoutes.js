@@ -86,13 +86,14 @@ router.get('/counselor/:counselorId', authMiddleware, rbacMiddleware('tickets.vi
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - studentId
- *               - title
- *               - description
+ *               - counselorId
+ *               - subject
+ *               - initialMessage
  *             properties:
  *               studentId:
  *                 type: integer
@@ -100,12 +101,15 @@ router.get('/counselor/:counselorId', authMiddleware, rbacMiddleware('tickets.vi
  *               counselorId:
  *                 type: integer
  *                 example: 2
- *               title:
+ *               subject:
  *                 type: string
  *                 example: Hostel room issue
- *               description:
+ *               initialMessage:
  *                 type: string
  *                 example: There is a water leak in my room
+ *               attachment:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Ticket created successfully
@@ -142,7 +146,7 @@ router.post('/', authMiddleware, rbacMiddleware('tickets.create'), uploadTicketA
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -155,17 +159,16 @@ router.post('/', authMiddleware, rbacMiddleware('tickets.create'), uploadTicketA
  *               senderId:
  *                 type: integer
  *                 example: 2
+ *               attachment:
+ *                 type: string
+ *                 format: binary
  *     responses:
- *       201:
+ *       200:
  *         description: Reply added successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Reply added
+ *               $ref: '#/components/schemas/Ticket'
  *       400:
  *         description: Invalid input
  *       401:

@@ -78,7 +78,7 @@ const UserManagement = () => {
     const sampleRow = [
       "student@example.com", "123", "student", "John Doe",
       "ST-2024-001", "Johnathan Doe", "J. Doe", 
-      "123 Main St, Colombo", "0112345678", "0771234567", "male"
+      "123 Main St Colombo", "0112345678", "0771234567", "male"
     ];
 
     const csvContent = "data:text/csv;charset=utf-8," 

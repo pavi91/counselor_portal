@@ -27,20 +27,21 @@ const submitApplication = async (req, res, next) => {
     const applicationData = { ...req.body };
     
     if (req.files) {
-      const first = (key) => (req.files[key] && req.files[key][0]) ? req.files[key][0] : null;
+      const all = (key) => req.files[key] || [];
+      const toPathList = (files) => files.map(file => `/filestore/${file.filename}`).join(',');
 
-      // Store file paths instead of files (support both camelCase and snake_case)
-      const fileResidence = first('fileResidence') || first('file_residence');
-      const fileIncome = first('fileIncome') || first('file_income');
-      const fileSiblings = first('fileSiblings') || first('file_siblings');
-      const fileSamurdhi = first('fileSamurdhi') || first('file_samurdhi');
-      const fileSports = first('fileSports') || first('file_sports');
+      // Store uploaded file paths (support both camelCase and snake_case field names)
+      const fileResidence = [...all('fileResidence'), ...all('file_residence')];
+      const fileIncome = [...all('fileIncome'), ...all('file_income')];
+      const fileSiblings = [...all('fileSiblings'), ...all('file_siblings')];
+      const fileSamurdhi = [...all('fileSamurdhi'), ...all('file_samurdhi')];
+      const fileSports = [...all('fileSports'), ...all('file_sports')];
 
-      if (fileResidence) applicationData.fileResidence = `/filestore/${fileResidence.filename}`;
-      if (fileIncome) applicationData.fileIncome = `/filestore/${fileIncome.filename}`;
-      if (fileSiblings) applicationData.fileSiblings = `/filestore/${fileSiblings.filename}`;
-      if (fileSamurdhi) applicationData.fileSamurdhi = `/filestore/${fileSamurdhi.filename}`;
-      if (fileSports) applicationData.fileSports = `/filestore/${fileSports.filename}`;
+      if (fileResidence.length > 0) applicationData.fileResidence = toPathList(fileResidence);
+      if (fileIncome.length > 0) applicationData.fileIncome = toPathList(fileIncome);
+      if (fileSiblings.length > 0) applicationData.fileSiblings = toPathList(fileSiblings);
+      if (fileSamurdhi.length > 0) applicationData.fileSamurdhi = toPathList(fileSamurdhi);
+      if (fileSports.length > 0) applicationData.fileSports = toPathList(fileSports);
     }
     
     const application = await applicationService.submitApplication(userId, applicationData);

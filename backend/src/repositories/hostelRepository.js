@@ -47,6 +47,14 @@ const getRooms = async (hostelId = null) => {
   return rows;
 };
 
+const getHostelById = async (hostelId) => {
+  const [rows] = await db.query(
+    `SELECT id, name, gender, year_group AS yearGroup FROM hostels WHERE id = ?`,
+    [hostelId]
+  );
+  return rows[0] || null;
+};
+
 const getAllocations = async () => {
   const [rows] = await db.query(
     `SELECT
@@ -137,6 +145,7 @@ const getRoomById = async (roomId) => {
 
 module.exports = {
   getHostels,
+  getHostelById,
   getRooms,
   getAllocations,
   getAllocationByUserId,

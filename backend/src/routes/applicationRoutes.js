@@ -90,18 +90,57 @@ router.get('/user/:userId', authMiddleware, rbacMiddleware(['applications.view_o
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
- *               - applicationData
+ *               - fullName
+ *               - indexNumber
+ *               - email
+ *               - gender
+ *               - mobilePhone
+ *               - district
+ *               - faculty
+ *               - department
+ *               - year
+ *               - hostelPref
  *             properties:
- *               applicationData:
- *                 type: object
- *                 example:
- *                   gpa: 3.8
- *                   extracurriculars: Student Leader
- *                   motivation: Interested in hostel life
+ *               fullName:
+ *                 type: string
+ *               indexNumber:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               mobilePhone:
+ *                 type: string
+ *               district:
+ *                 type: string
+ *               faculty:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *               year:
+ *                 type: string
+ *               hostelPref:
+ *                 type: string
+ *               fileResidence:
+ *                 type: string
+ *                 format: binary
+ *               fileIncome:
+ *                 type: string
+ *                 format: binary
+ *               fileSiblings:
+ *                 type: string
+ *                 format: binary
+ *               fileSamurdhi:
+ *                 type: string
+ *                 format: binary
+ *               fileSports:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Application submitted successfully
@@ -150,9 +189,6 @@ router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit
  *                 type: string
  *                 enum: [approved, rejected]
  *                 example: approved
- *               reviewNotes:
- *                 type: string
- *                 example: Application meets all requirements
  *     responses:
  *       200:
  *         description: Application status updated
@@ -161,9 +197,9 @@ router.post('/user/:userId', authMiddleware, rbacMiddleware('applications.submit
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                   example: Application status updated
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *       400:
  *         description: Invalid input
  *       401:

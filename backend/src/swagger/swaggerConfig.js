@@ -50,22 +50,51 @@ const options = {
             id: { type: 'integer', example: 1 },
             userId: { type: 'integer', example: 1 },
             status: { type: 'string', enum: ['pending', 'approved', 'rejected'], example: 'pending' },
-            applicationData: { type: 'object', example: { field1: 'value1' } },
-            submittedAt: { type: 'string', format: 'date-time' },
-            reviewedAt: { type: 'string', format: 'date-time' },
-            reviewNotes: { type: 'string', example: 'Application meets requirements' }
+            points: { type: 'number', example: 42.5 },
+            submissionDate: { type: 'string', format: 'date', example: '2026-03-13' },
+            fullName: { type: 'string', example: 'Kasun Wijeratne' },
+            indexNumber: { type: 'string', example: 'ST-2024-004' },
+            permanentAddress: { type: 'string', example: '45 Temple Road, Kandy' },
+            email: { type: 'string', example: 'student@uom.local' },
+            gender: { type: 'string', enum: ['male', 'female', 'other'], example: 'male' },
+            mobilePhone: { type: 'string', example: '0771234567' },
+            district: { type: 'string', example: 'Kandy' },
+            closestTown: { type: 'string', example: 'Peradeniya' },
+            distanceToTown: { type: 'number', example: 3.2 },
+            distance: { type: 'number', example: 120.5 },
+            faculty: { type: 'string', example: 'Engineering' },
+            department: { type: 'string', example: 'Computer Science' },
+            year: { type: 'string', example: '2' },
+            incomeRange: { type: 'string', example: '150k_200k' },
+            hostelPref: { type: 'string', example: 'A Hostel' },
+            fileResidence: { type: 'string', example: '/filestore/residence.pdf' },
+            fileIncome: { type: 'string', example: '/filestore/income.pdf' }
           }
         },
         Ticket: {
           type: 'object',
           properties: {
             id: { type: 'integer', example: 1 },
-            studentId: { type: 'integer', example: 1 },
-            counselorId: { type: 'integer', example: 2 },
-            title: { type: 'string', example: 'Hostel Room Issue' },
-            description: { type: 'string', example: 'The room has water leakage' },
+            student_id: { type: 'integer', example: 1 },
+            counselor_id: { type: 'integer', example: 2 },
+            subject: { type: 'string', example: 'Hostel Room Issue' },
             status: { type: 'string', enum: ['open', 'in_progress', 'resolved'], example: 'open' },
-            createdAt: { type: 'string', format: 'date-time' }
+            created_at: { type: 'string', example: '2026-03-13' },
+            studentName: { type: 'string', example: 'Kasun Wijeratne' },
+            counselorName: { type: 'string', example: 'Dr. Nirosha Bandara' },
+            messages: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer', example: 1 },
+                  sender_id: { type: 'integer', example: 1 },
+                  text: { type: 'string', example: 'Please help with this issue.' },
+                  attachment: { type: 'string', example: '/filestore/ticket-1.png' },
+                  created_at: { type: 'string', example: '3/13/2026, 10:05:00 AM' }
+                }
+              }
+            }
           }
         },
         Hostel: {
@@ -73,20 +102,19 @@ const options = {
           properties: {
             id: { type: 'integer', example: 1 },
             name: { type: 'string', example: 'A1 Hostel' },
-            type: { type: 'string', enum: ['male', 'female'], example: 'male' },
-            capacity: { type: 'integer', example: 100 },
-            occupancy: { type: 'integer', example: 85 }
+            gender: { type: 'string', example: 'male' },
+            yearGroup: { type: 'string', example: 'final_year' }
           }
         },
         RoleRequest: {
           type: 'object',
           properties: {
             id: { type: 'integer', example: 1 },
-            userId: { type: 'integer', example: 1 },
-            requestedRole: { type: 'string', enum: ['counselor', 'staff', 'admin'], example: 'counselor' },
+            user_id: { type: 'integer', example: 1 },
+            message: { type: 'string', example: 'I would like to become a counselor.' },
+            attachment: { type: 'string', example: '/filestore/role-request-proof.pdf' },
             status: { type: 'string', enum: ['pending', 'approved', 'rejected'], example: 'pending' },
-            reason: { type: 'string', example: 'Want to help as counselor' },
-            createdAt: { type: 'string', format: 'date-time' }
+            created_at: { type: 'string', format: 'date', example: '2026-03-13' }
           }
         },
         Error: {

@@ -77,19 +77,17 @@ router.get('/mine', authMiddleware, rbacMiddleware('role_requests.create'), role
  *             type: object
  *             required:
  *               - userId
- *               - requestedRole
- *               - reason
+ *               - message
  *             properties:
  *               userId:
  *                 type: integer
  *                 example: 1
- *               requestedRole:
- *                 type: string
- *                 enum: [counselor, staff, admin]
- *                 example: counselor
- *               reason:
+ *               message:
  *                 type: string
  *                 example: I want to help other students as a counselor
+ *               attachment:
+ *                 type: string
+ *                 example: supporting_document.pdf
  *     responses:
  *       201:
  *         description: Role request created successfully
@@ -130,26 +128,19 @@ router.post('/', authMiddleware, rbacMiddleware('role_requests.create'), uploadR
  *           schema:
  *             type: object
  *             required:
- *               - status
+ *               - action
  *             properties:
- *               status:
+ *               action:
  *                 type: string
  *                 enum: [approved, rejected]
  *                 example: approved
- *               notes:
- *                 type: string
- *                 example: You have been approved to be a counselor
  *     responses:
  *       200:
  *         description: Role request processed
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Request processed
+ *               $ref: '#/components/schemas/RoleRequest'
  *       400:
  *         description: Invalid input
  *       401:

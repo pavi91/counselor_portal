@@ -63,11 +63,14 @@ export const getMyRoleRequestsAPI = async () => {
 };
 
 export const createRoleRequestAPI = async (userId, message, attachment) => {
-  const response = await apiClient.post('/role-requests', {
-    userId,
-    message,
-    attachment: attachment ? attachment.name : null
-  });
+  const formData = new FormData();
+  formData.append('userId', userId);
+  formData.append('message', message);
+  if (attachment) {
+    formData.append('attachment', attachment);
+  }
+  
+  const response = await apiClient.post('/role-requests', formData);
   return response.data;
 };
 

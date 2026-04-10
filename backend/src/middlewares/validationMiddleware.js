@@ -157,10 +157,17 @@ const validateHostelAssignment = (req, res, next) => {
 
 // Room creation validation
 const validateRoomCreate = (req, res, next) => {
-  const { hostelId, number, floor, capacity, type } = req.body;
+  const { hostelId, hostel, number, floor, capacity, type } = req.body;
   const errors = [];
 
-  if (!hostelId || isNaN(parseInt(hostelId))) {
+  const hasHostelId = hostelId !== undefined && hostelId !== null && hostelId !== '';
+  const hasHostelName = typeof hostel === 'string' && hostel.trim().length > 0;
+
+  if (!hasHostelId && !hasHostelName) {
+    errors.push('Valid hostel ID or hostel name is required');
+  }
+
+  if (hasHostelId && isNaN(parseInt(hostelId, 10))) {
     errors.push('Valid hostel ID is required');
   }
   if (!number || number.trim().length === 0) {

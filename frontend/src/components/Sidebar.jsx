@@ -140,7 +140,7 @@ const Sidebar = () => {
         )}
 
         {/* SYSTEM */}
-        {perms.canViewUsers && (
+        {perms.canViewUsers && user.role !== "counselor" && (
           <Section title="System" collapsed={collapsed}>
             <NavItem
               to="/management"

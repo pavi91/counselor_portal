@@ -95,7 +95,7 @@ const StudentTickets = () => {
 
   const handleReply = async (e) => {
     e.preventDefault();
-    if (!replyText.trim() && !replyAttachment) return;
+    if (!replyText.trim()) return;
     
     setReplySending(true);
     try {
@@ -240,7 +240,7 @@ const StudentTickets = () => {
                     />
                     <button
                       type="submit"
-                      disabled={(!replyText.trim() && !replyAttachment) || replySending}
+                      disabled={!replyText.trim() || replySending}
                       className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded font-medium text-sm transition"
                     >
                       {replySending ? 'Sending...' : 'Reply'}
@@ -378,7 +378,7 @@ const StudentTickets = () => {
                 </button>
                 <button 
                     type="submit" 
-                    disabled={sending} 
+                  disabled={sending || !formData.message.trim()} 
                     className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
                 >
                     {sending ? 'Sending...' : 'Send Ticket'}

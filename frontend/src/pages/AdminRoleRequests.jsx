@@ -32,6 +32,13 @@ const AdminRoleRequests = () => {
     }
   };
 
+  const getAttachmentUrl = (path) => {
+    if (!path) return null;
+    return path.startsWith('http')
+      ? path
+      : `http://localhost:5000${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
@@ -66,9 +73,16 @@ const AdminRoleRequests = () => {
                         </div>
 
                         {req.attachment && (
-                            <div className="mb-4 flex items-center gap-2 text-sm text-blue-600 bg-blue-50 dark:bg-blue-900/20 w-max px-3 py-1.5 rounded">
-                                <span>📎</span>
-                                <span className="font-mono">{req.attachment}</span>
+                            <div className="mb-4 py-2 border-b dark:border-slate-700">
+                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Attachment</p>
+                                <a
+                                  href={getAttachmentUrl(req.attachment)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 font-mono bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded hover:opacity-80 transition inline-block"
+                                >
+                                  📎 {req.attachment.split('/').pop()}
+                                </a>
                             </div>
                         )}
 

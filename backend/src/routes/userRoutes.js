@@ -23,7 +23,7 @@ const router = express.Router();
  *           type: string
  *           enum: [student, counselor, staff, admin]
  *         description: Filter users by role
- *       - name: query
+ *       - name: q
  *         in: query
  *         schema:
  *           type: string
@@ -254,7 +254,7 @@ router.post('/', authMiddleware, rbacMiddleware('users.create'), validateUserCre
  *                     role:
  *                       type: string
  *     responses:
- *       201:
+ *       200:
  *         description: Users created successfully
  *         content:
  *           application/json:
@@ -307,11 +307,7 @@ router.post('/bulk', authMiddleware, rbacMiddleware('users.bulk_create'), userCo
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Role updated
+ *               $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
  *       404:

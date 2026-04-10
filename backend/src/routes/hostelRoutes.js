@@ -16,15 +16,28 @@ const router = express.Router();
  *       - Hostels
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - name: gender
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [male, female]
+ *         description: Filter hostels by student gender
+ *       - name: year
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Filter hostels by year group
  *     responses:
  *       200:
- *         description: List of hostels
+ *         description: List of hostel names
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Hostel'
+ *                 type: string
+ *                 example: A Hostel
  *       401:
  *         description: Unauthorized
  *       500:
@@ -42,24 +55,30 @@ router.get('/', authMiddleware, rbacMiddleware('hostels.view'), hostelController
  *       - Hostels
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - name: hostel
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Optional hostel name filter
  *     responses:
  *       200:
  *         description: Hostel statistics
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   hostelId:
- *                     type: integer
- *                   hostelName:
- *                     type: string
- *                   totalRooms:
- *                     type: integer
- *                   occupiedRooms:
- *                     type: integer
+ *               type: object
+ *               properties:
+ *                 totalCapacity:
+ *                   type: integer
+ *                 occupiedBeds:
+ *                   type: integer
+ *                 availableBeds:
+ *                   type: integer
+ *                 roomStats:
+ *                   type: array
+ *                   items:
+ *                     type: object
  *       401:
  *         description: Unauthorized
  *       500:
@@ -87,12 +106,14 @@ router.get('/stats', authMiddleware, rbacMiddleware('hostels.view_stats'), hoste
  *               items:
  *                 type: object
  *                 properties:
- *                   allocationId:
+ *                   id:
  *                     type: integer
- *                   studentId:
+ *                   userId:
  *                     type: integer
- *                   hostelId:
+ *                   roomId:
  *                     type: integer
+ *                   hostelName:
+ *                     type: string
  *                   roomNumber:
  *                     type: string
  *       401:
@@ -127,12 +148,24 @@ router.get('/allocations', authMiddleware, rbacMiddleware('hostels.view'), hoste
  *             schema:
  *               type: object
  *               properties:
+ *                 id:
+ *                   type: integer
+ *                 userId:
+ *                   type: integer
+ *                 roomId:
+ *                   type: integer
  *                 hostelName:
  *                   type: string
  *                 roomNumber:
  *                   type: string
- *                 bedNumber:
+ *                 floor:
+ *                   type: integer
+ *                 startDate:
  *                   type: string
+ *                   format: date
+ *                 endDate:
+ *                   type: string
+ *                   format: date
  *       401:
  *         description: Unauthorized
  *       404:
@@ -161,6 +194,8 @@ router.get('/allocations/:userId', authMiddleware, rbacMiddleware(['hostels.view
  *             required:
  *               - userId
  *               - roomId
+ *               - startDate
+ *               - endDate
  *             properties:
  *               userId:
  *                 type: integer
@@ -186,9 +221,18 @@ router.get('/allocations/:userId', authMiddleware, rbacMiddleware(['hostels.view
  *             schema:
  *               type: object
  *               properties:
- *                 message:
+ *                 id:
+ *                   type: integer
+ *                 userId:
+ *                   type: integer
+ *                 roomId:
+ *                   type: integer
+ *                 startDate:
  *                   type: string
- *                   example: Room assigned successfully
+ *                   format: date
+ *                 endDate:
+ *                   type: string
+ *                   format: date
  *       400:
  *         description: Invalid input or room full
  *       401:
@@ -223,9 +267,9 @@ router.post('/assign', authMiddleware, rbacMiddleware('hostels.assign'), validat
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                   example: Allocation removed
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *       401:
  *         description: Unauthorized
  *       404:
@@ -252,19 +296,27 @@ router.delete('/allocations/:userId', authMiddleware, rbacMiddleware('hostels.ma
  *           schema:
  *             type: object
  *             required:
- *               - hostelId
- *               - roomNumber
+ *               - hostel
+ *               - number
+ *               - floor
  *               - capacity
+ *               - type
  *             properties:
- *               hostelId:
- *                 type: integer
- *                 example: 1
- *               roomNumber:
+ *               hostel:
+ *                 type: string
+ *                 example: A Hostel
+ *               number:
  *                 type: string
  *                 example: "101"
+ *               floor:
+ *                 type: integer
+ *                 example: 1
  *               capacity:
  *                 type: integer
  *                 example: 2
+ *               type:
+ *                 type: string
+ *                 example: Double
  *     responses:
  *       201:
  *         description: Room created successfully
@@ -273,9 +325,18 @@ router.delete('/allocations/:userId', authMiddleware, rbacMiddleware('hostels.ma
  *             schema:
  *               type: object
  *               properties:
- *                 message:
+ *                 id:
+ *                   type: integer
+ *                 hostel:
  *                   type: string
- *                   example: Room created
+ *                 number:
+ *                   type: string
+ *                 floor:
+ *                   type: integer
+ *                 capacity:
+ *                   type: integer
+ *                 type:
+ *                   type: string
  *       400:
  *         description: Invalid input
  *       401:
