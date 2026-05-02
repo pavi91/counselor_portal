@@ -20,6 +20,10 @@ import CounselorTickets from './pages/CounselorTickets';
 
 import StaffRoleRequest from './pages/StaffRoleRequest';
 import AdminRoleRequests from './pages/AdminRoleRequests';
+import ApplicationReports from './pages/ApplicationReports';
+import TicketReports from './pages/TicketReports';
+import FAQManagement from './pages/FAQManagement';
+import FAQReports from './pages/FAQReports';
 
 const Home = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white">
@@ -56,6 +60,7 @@ function App() {
             {/* COUNSELOR (Admin can also access if needed) */}
             <Route element={<ProtectedRoute allowedRoles={['counselor', 'admin']} />}>
                <Route path="/counselor/tickets" element={<CounselorTickets />} />
+               <Route path="/counselor/faqs" element={<FAQManagement />} />
             </Route>
 
             {/* STUDENT */}
@@ -70,6 +75,9 @@ function App() {
 
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin/role-requests" element={<AdminRoleRequests />} />
+              <Route path="/admin/reports/applications" element={<ApplicationReports />} />
+              <Route path="/admin/reports/tickets" element={<TicketReports />} />
+              <Route path="/admin/reports/faqs" element={<FAQReports />} />
             </Route>
 
           </Route>

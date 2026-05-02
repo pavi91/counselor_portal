@@ -25,11 +25,22 @@ const storage = multer.diskStorage({
 
 // File filter - accept only specific file types
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedExtensions = new Set(['.jpeg', '.jpg', '.png', '.pdf', '.doc', '.docx']);
+  const allowedMimeTypes = new Set([
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ]);
 
-  if (mimetype && extname) {
+  const extension = path.extname(file.originalname).toLowerCase();
+  const hasValidExtension = allowedExtensions.has(extension);
+  const hasValidMimeType = allowedMimeTypes.has(file.mimetype);
+  const isGenericWordMime = file.mimetype === 'application/octet-stream' && (extension === '.doc' || extension === '.docx');
+
+  if (hasValidExtension && (hasValidMimeType || isGenericWordMime)) {
     return cb(null, true);
   } else {
     cb(new Error('Invalid file type. Only JPEG, PNG, PDF, DOC, and DOCX files are allowed.'));
@@ -40,29 +51,39 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB max file size
+    fileSize: 100 * 1024 * 1024 // 100MB max file size
+  },
+  fileFilter: fileFilter
+});
+
+// Dedicated upload config for hostel applications.
+// Each individual field allows up to 5 files (enforced via maxCount below).
+const uploadApplication = multer({
+  storage: storage,
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB max file size per file
   },
   fileFilter: fileFilter
 });
 
 // Middleware for application files
-const uploadApplicationFiles = upload.fields([
-  { name: 'fileResidence', maxCount: 1 },
-  { name: 'fileIncome', maxCount: 1 },
-  { name: 'fileSiblings', maxCount: 1 },
-  { name: 'fileSamurdhi', maxCount: 1 },
-  { name: 'fileSports', maxCount: 1 },
+const uploadApplicationFiles = uploadApplication.fields([
+  { name: 'fileResidence', maxCount: 5 },
+  { name: 'fileIncome', maxCount: 5 },
+  { name: 'fileSiblings', maxCount: 5 },
+  { name: 'fileSamurdhi', maxCount: 5 },
+  { name: 'fileSports', maxCount: 5 },
   // Support snake_case names used in the frontend
-  { name: 'file_residence', maxCount: 1 },
-  { name: 'file_income', maxCount: 1 },
-  { name: 'file_siblings', maxCount: 1 },
-  { name: 'file_samurdhi', maxCount: 1 },
-  { name: 'file_sports', maxCount: 1 },
+  { name: 'file_residence', maxCount: 5 },
+  { name: 'file_income', maxCount: 5 },
+  { name: 'file_siblings', maxCount: 5 },
+  { name: 'file_samurdhi', maxCount: 5 },
+  { name: 'file_sports', maxCount: 5 },
   // Other optional attachments from the form
-  { name: 'file_parentDeath', maxCount: 1 },
-  { name: 'file_parentMedical', maxCount: 1 },
-  { name: 'file_siblingMedical', maxCount: 1 },
-  { name: 'file_special', maxCount: 1 }
+  { name: 'file_parentDeath', maxCount: 5 },
+  { name: 'file_parentMedical', maxCount: 5 },
+  { name: 'file_siblingMedical', maxCount: 5 },
+  { name: 'file_special', maxCount: 5 }
 ]);
 
 // Middleware for ticket attachment (single file)

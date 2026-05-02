@@ -88,8 +88,16 @@ const removeAllocation = async (userId) => {
 };
 
 const createRoom = async (roomData) => {
-  const hostels = await hostelRepository.getHostels();
-  const hostel = hostels.find(h => h.name === roomData.hostel);
+  let hostel = null;
+
+  if (roomData.hostelId !== undefined && roomData.hostelId !== null && roomData.hostelId !== '') {
+    hostel = await hostelRepository.getHostelById(parseInt(roomData.hostelId, 10));
+  }
+
+  if (!hostel && roomData.hostel) {
+    const hostels = await hostelRepository.getHostels();
+    hostel = hostels.find(h => h.name === roomData.hostel);
+  }
   
   if (!hostel) {
     const err = new Error('Hostel not found');
@@ -112,7 +120,7 @@ const createRoom = async (roomData) => {
     type: roomData.type
   });
   
-  return { id, hostel: roomData.hostel, number: roomData.number, floor: roomData.floor, capacity: roomData.capacity, type: roomData.type };
+  return { id, hostel: hostel.name, hostelId: hostel.id, number: roomData.number, floor: roomData.floor, capacity: roomData.capacity, type: roomData.type };
 };
 
 module.exports = {

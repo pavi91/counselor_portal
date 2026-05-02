@@ -157,10 +157,17 @@ const validateHostelAssignment = (req, res, next) => {
 
 // Room creation validation
 const validateRoomCreate = (req, res, next) => {
-  const { hostelId, number, floor, capacity, type } = req.body;
+  const { hostelId, hostel, number, floor, capacity, type } = req.body;
   const errors = [];
 
-  if (!hostelId || isNaN(parseInt(hostelId))) {
+  const hasHostelId = hostelId !== undefined && hostelId !== null && hostelId !== '';
+  const hasHostelName = typeof hostel === 'string' && hostel.trim().length > 0;
+
+  if (!hasHostelId && !hasHostelName) {
+    errors.push('Valid hostel ID or hostel name is required');
+  }
+
+  if (hasHostelId && isNaN(parseInt(hostelId, 10))) {
     errors.push('Valid hostel ID is required');
   }
   if (!number || number.trim().length === 0) {
@@ -182,6 +189,51 @@ const validateRoomCreate = (req, res, next) => {
   next();
 };
 
+// FAQ create validation
+const validateFaqCreate = (req, res, next) => {
+  const { question, answer, category } = req.body;
+  const errors = [];
+
+  if (!question || question.trim().length === 0) {
+    errors.push('Question is required');
+  }
+  if (!answer || answer.trim().length === 0) {
+    errors.push('Answer is required');
+  }
+  if (!category || category.trim().length === 0) {
+    errors.push('Category is required');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: 'Validation Error', messages: errors });
+  }
+  next();
+};
+
+// FAQ update validation
+const validateFaqUpdate = (req, res, next) => {
+  const { question, answer, category } = req.body;
+  const errors = [];
+
+  if (!question || question.trim().length === 0) {
+    errors.push('Question is required');
+  }
+  if (!answer || answer.trim().length === 0) {
+    errors.push('Answer is required');
+  }
+  if (!category || category.trim().length === 0) {
+    errors.push('Category is required');
+  }
+  if (req.body.isActive === undefined || req.body.isActive === null) {
+    errors.push('Active status is required');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: 'Validation Error', messages: errors });
+  }
+  next();
+};
+
 module.exports = {
   validateUserCreate,
   validateApplicationSubmit,
@@ -189,5 +241,7 @@ module.exports = {
   validateTicketReply,
   validateRoleRequest,
   validateHostelAssignment,
-  validateRoomCreate
+  validateRoomCreate,
+  validateFaqCreate,
+  validateFaqUpdate
 };

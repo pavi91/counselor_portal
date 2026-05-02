@@ -55,29 +55,37 @@ const ApplicationReview = () => {
     );
   });
 
-  // Helper to show file link or "Not Provided"
-  const FileLink = ({ label, fileName }) => {
-    const fileUrl = fileName
-      ? (fileName.startsWith('http')
-          ? fileName
-          : `http://localhost:5000${fileName.startsWith('/') ? '' : '/'}${fileName}`)
-      : null;
+  // Helper to show one or more file links (values may be comma-separated paths)
+  const FileLinks = ({ label, fileValue }) => {
+    const toUrl = (path) =>
+      path.startsWith('http')
+        ? path
+        : `http://localhost:5000${path.startsWith('/') ? '' : '/'}${path}`;
+
+    const paths = fileValue
+      ? fileValue.split(',').map(p => p.trim()).filter(Boolean)
+      : [];
 
     return (
-      <div className="flex justify-between items-center py-2 border-b dark:border-slate-700 last:border-0">
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{label}</span>
-          {fileUrl ? (
+      <div className="py-2 border-b dark:border-slate-700 last:border-0">
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{label}</span>
+        {paths.length > 0 ? (
+          <div className="flex flex-wrap gap-2 mt-1">
+            {paths.map((path, i) => (
               <a
-                href={fileUrl}
+                key={i}
+                href={toUrl(path)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-blue-600 font-mono bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hover:opacity-80 transition"
               >
-                📎 {fileName.split('/').pop()}
+                📎 {path.split('/').pop()}
               </a>
-          ) : (
-              <span className="text-xs text-slate-400 italic">Not Provided</span>
-          )}
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic mt-1">Not Provided</p>
+        )}
       </div>
     );
   };
@@ -120,7 +128,7 @@ const ApplicationReview = () => {
                 <th className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400">Academic</th>
                 <th className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400">District</th>
                 <th className="px-6 py-4 font-semibold text-slate-600 dark:text-slate-400">Status</th>
-                <th className="px-6 py-4 text-right font-semibold text-slate-600 dark:text-slate-400">Actions</th>
+                <th className="px-6 py-4 text-center font-semibold text-slate-600 dark:text-slate-400">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -140,7 +148,7 @@ const ApplicationReview = () => {
                     <div className="text-xs text-slate-500">{app.indexNumber || 'No Index'}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-700 font-bold">
+                    <span className="inline-flex items-center justify-center h-8 w-8 text-white font-bold">
                       {app.points}
                     </span>
                   </td>
@@ -251,11 +259,11 @@ const ApplicationReview = () => {
                     <div className="col-span-1 md:col-span-2 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-900/30">
                         <h3 className="font-bold text-sm uppercase text-blue-600 mb-2">Submitted Documents</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-                            <FileLink label="Residence (GN Cert)" fileName={selectedApp.fileResidence} />
-                            <FileLink label="Income Proof" fileName={selectedApp.fileIncome} />
-                            <FileLink label="Sibling Letters" fileName={selectedApp.fileSiblings} />
-                            <FileLink label="Samurdhi Card" fileName={selectedApp.fileSamurdhi} />
-                            <FileLink label="Sports Certs" fileName={selectedApp.fileSports} />
+                            <FileLinks label="Residence (GN Cert)" fileValue={selectedApp.fileResidence} />
+                            <FileLinks label="Income Proof" fileValue={selectedApp.fileIncome} />
+                            <FileLinks label="Sibling Letters" fileValue={selectedApp.fileSiblings} />
+                            <FileLinks label="Samurdhi Card" fileValue={selectedApp.fileSamurdhi} />
+                            <FileLinks label="Sports Certs" fileValue={selectedApp.fileSports} />
                         </div>
                     </div>
 

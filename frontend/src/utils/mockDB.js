@@ -18,6 +18,8 @@ export const ROLE_PERMISSIONS = {
     canApplyHostel: false,
     canViewTickets: true,
     canManageRoleRequests: true,
+    canViewReports: true,
+    canViewFaqReports: true,
   },
   staff: {
     canViewUsers: true,
@@ -48,6 +50,7 @@ export const ROLE_PERMISSIONS = {
     canApplyHostel: false,
     canViewTickets: true,
     canManageTickets: true,
+    canManageFaqs: true,
   },
   student: {
     canViewUsers: false,
@@ -137,27 +140,9 @@ export const generateMockJWT = (user) => {
   return `fake-jwt-header.${btoa(payload)}.fake-signature`;
 };
 
-// --- HOSTEL ROOMS ---
-
-export let MOCK_HOSTEL_ROOMS = [
-  { id: 101, hostel: "Men's Hostel A", floor: 1, number: "101", capacity: 2, type: "Double" },
-  { id: 102, hostel: "Men's Hostel A", floor: 1, number: "102", capacity: 2, type: "Double" },
-  { id: 201, hostel: "Men's Hostel A", floor: 2, number: "201", capacity: 1, type: "Single" },
-  { id: 301, hostel: "Women's Hostel B", floor: 1, number: "101", capacity: 2, type: "Double" },
-  { id: 302, hostel: "Women's Hostel B", floor: 1, number: "102", capacity: 4, type: "Dorm" },
-];
-
-// --- ALLOCATIONS ---
-
-export let MOCK_ALLOCATIONS = [
-  {
-    id: 1,
-    userId: 4,
-    roomId: 101,
-    startDate: "2024-01-15",
-    endDate: "2024-12-15"
-  }
-];
+// NOTE: All hostel and allocation data now comes from the backend API
+// MOCK_HOSTEL_ROOMS and MOCK_ALLOCATIONS have been removed to ensure consistency
+// See hostelApi.js for backend integration
 
 // --- APPLICATIONS ---
 

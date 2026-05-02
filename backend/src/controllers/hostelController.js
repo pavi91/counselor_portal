@@ -67,8 +67,8 @@ const removeAllocation = async (req, res, next) => {
 
 const createRoom = async (req, res, next) => {
   try {
-    const { hostel, number, floor, capacity, type } = req.body;
-    const room = await hostelService.createRoom({ hostel, number, floor, capacity, type });
+    const { hostelId, hostel, number, floor, capacity, type } = req.body;
+    const room = await hostelService.createRoom({ hostelId, hostel, number, floor, capacity, type });
     res.status(201).json(room);
   } catch (err) {
     next(err);

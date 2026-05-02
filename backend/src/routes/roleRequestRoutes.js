@@ -35,6 +35,32 @@ router.get('/', authMiddleware, rbacMiddleware('role_requests.view_all'), roleRe
 
 /**
  * @swagger
+ * /api/role-requests/mine:
+ *   get:
+ *     summary: Get my role requests
+ *     description: Retrieve the authenticated user's own role request history
+ *     tags:
+ *       - Role Requests
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user's role requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/RoleRequest'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/mine', authMiddleware, rbacMiddleware('role_requests.create'), roleRequestController.getMyRoleRequests);
+
+/**
+ * @swagger
  * /api/role-requests:
  *   post:
  *     summary: Create a role request
@@ -51,19 +77,17 @@ router.get('/', authMiddleware, rbacMiddleware('role_requests.view_all'), roleRe
  *             type: object
  *             required:
  *               - userId
- *               - requestedRole
- *               - reason
+ *               - message
  *             properties:
  *               userId:
  *                 type: integer
  *                 example: 1
- *               requestedRole:
- *                 type: string
- *                 enum: [counselor, staff, admin]
- *                 example: counselor
- *               reason:
+ *               message:
  *                 type: string
  *                 example: I want to help other students as a counselor
+ *               attachment:
+ *                 type: string
+ *                 example: supporting_document.pdf
  *     responses:
  *       201:
  *         description: Role request created successfully
@@ -104,26 +128,19 @@ router.post('/', authMiddleware, rbacMiddleware('role_requests.create'), uploadR
  *           schema:
  *             type: object
  *             required:
- *               - status
+ *               - action
  *             properties:
- *               status:
+ *               action:
  *                 type: string
  *                 enum: [approved, rejected]
  *                 example: approved
- *               notes:
- *                 type: string
- *                 example: You have been approved to be a counselor
  *     responses:
  *       200:
  *         description: Role request processed
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Request processed
+ *               $ref: '#/components/schemas/RoleRequest'
  *       400:
  *         description: Invalid input
  *       401:

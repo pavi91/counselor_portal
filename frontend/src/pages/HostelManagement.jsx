@@ -10,7 +10,7 @@ const HostelManagement = () => {
   
   // --- Data State ---
   const [hostelList, setHostelList] = useState([]);
-  const [selectedHostel, setSelectedHostel] = useState('All');
+  const [selectedHostel, setSelectedHostel] = useState(null);
   
   const [roomData, setRoomData] = useState([]);
   const [stats, setStats] = useState(null);
@@ -38,7 +38,7 @@ const HostelManagement = () => {
 
   // Reload stats whenever selectedHostel changes
   useEffect(() => {
-    if (hostelList.length > 0) {
+    if (selectedHostel !== null && hostelList.length > 0) {
         loadStats();
     }
   }, [selectedHostel]);
@@ -54,6 +54,7 @@ const HostelManagement = () => {
       ]);
 
       setHostelList(hostels);
+      // Default to first hostel from backend
       if(hostels.length > 0) setSelectedHostel(hostels[0]);
 
       // Already filtered to only students
@@ -165,10 +166,13 @@ const HostelManagement = () => {
         
         <div className="flex gap-3">
              <select 
-                value={selectedHostel}
+                value={selectedHostel || ''}
                 onChange={(e) => setSelectedHostel(e.target.value)}
                 className="bg-white dark:bg-slate-800 border dark:border-slate-600 dark:text-white rounded-lg px-4 py-2 font-medium shadow-sm"
+                disabled={hostelList.length === 0}
              >
+                {hostelList.length === 0 && <option value="">Loading hostels...</option>}
+                {hostelList.length > 0 && <option value="">Select a Hostel</option>}
                 {hostelList.map(h => <option key={h} value={h}>{h}</option>)}
              </select>
 

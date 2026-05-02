@@ -4,6 +4,17 @@ import { useAuth } from '../hooks/useAuth';
 import * as applicationApi from '../api/applicationApi';
 import * as userApi from '../api/userApi';
 import * as hostelApi from '../api/hostelApi';
+import { getApiErrorMessage, getApiErrorMessages } from '../api/apiClient';
+
+const MAX_FILES_PER_FIELD = 5;
+const PHONE_REGEX = /^[0-9]{10}$/;
+const districts = [
+  "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
+  "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
+  "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
+  "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
+  "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
+];
 
 const StudentApplication = () => {
   const { user } = useAuth(); // Now contains full details from login
@@ -11,8 +22,11 @@ const StudentApplication = () => {
   const [hostelAllocation, setHostelAllocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isResubmitting, setIsResubmitting] = useState(false);
   const [hostelOptions, setHostelOptions] = useState([]);
   const [hostelOptionsLoading, setHostelOptionsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
 
   console.log('User Profile:', user);
 
@@ -81,10 +95,12 @@ const StudentApplication = () => {
     hostelPref: '',
 
     // --- FILES ---
-    file_residence: null, file_income: null, file_siblings: null,
-    file_siblingMedical: null, file_parentDeath: null, file_parentMedical: null,
-    file_samurdhi: null, file_sports: null, file_special: null
+    file_residence: [], file_income: [], file_siblings: [],
+    file_siblingMedical: [], file_parentDeath: [], file_parentMedical: [],
+    file_samurdhi: [], file_sports: [], file_special: []
   });
+
+
 
   useEffect(() => {
     loadMyApplication();
@@ -176,8 +192,24 @@ const StudentApplication = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+    setSubmitError('');
+
     if (type === 'file') {
-      setFormData(prev => ({ ...prev, [name]: files && files[0] ? files[0] : null }));
+      const nextFiles = files ? Array.from(files) : [];
+
+      if (nextFiles.length > MAX_FILES_PER_FIELD) {
+        setSubmitError(`You can upload a maximum of ${MAX_FILES_PER_FIELD} files per upload field.`);
+        e.target.value = '';
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, [name]: nextFiles }));
     } else {
       setFormData(prev => ({ 
           ...prev, 
@@ -186,23 +218,122 @@ const StudentApplication = () => {
     }
   };
 
+  const mapBackendMessagesToFields = (messages) => {
+    const mapped = {};
+    messages.forEach((message) => {
+      const msg = String(message || '').toLowerCase();
+      if (msg.includes('full name')) mapped.fullName = message;
+      else if (msg.includes('index number')) mapped.indexNumber = message;
+      else if (msg.includes('email')) mapped.email = message;
+      else if (msg.includes('gender')) mapped.gender = message;
+      else if (msg.includes('mobile phone')) mapped.mobilePhone = message;
+      else if (msg.includes('district')) mapped.district = message;
+      else if (msg.includes('faculty')) mapped.faculty = message;
+      else if (msg.includes('department')) mapped.department = message;
+      else if (msg.includes('year')) mapped.year = message;
+      else if (msg.includes('hostel preference')) mapped.hostelPref = message;
+    });
+    return mapped;
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!String(formData.closestTown || '').trim()) {
+      errors.closestTown = 'Closest town is required.';
+    }
+
+    if (!String(formData.distanceToTown || '').trim() || Number(formData.distanceToTown) < 0) {
+      errors.distanceToTown = 'Distance to town must be 0 or more.';
+    }
+
+    if (!String(formData.distance || '').trim() || Number(formData.distance) < 0) {
+      errors.distance = 'Distance to university must be 0 or more.';
+    }
+
+    if (String(formData.walkingDistance || '').trim() && Number(formData.walkingDistance) < 0) {
+      errors.walkingDistance = 'Walking distance cannot be negative.';
+    }
+
+    if (!String(formData.faculty || '').trim()) {
+      errors.faculty = 'Faculty is required.';
+    }
+
+    if (!String(formData.department || '').trim()) {
+      errors.department = 'Department is required.';
+    }
+
+    if (!PHONE_REGEX.test(String(formData.mobilePhone || '').trim())) {
+      errors.mobilePhone = 'Mobile phone must be exactly 10 digits.';
+    }
+
+    if (String(formData.residentPhone || '').trim() && !PHONE_REGEX.test(String(formData.residentPhone || '').trim())) {
+      errors.residentPhone = 'Residence phone must be exactly 10 digits.';
+    }
+
+    if (!PHONE_REGEX.test(String(formData.emergencyMobile || '').trim())) {
+      errors.emergencyMobile = 'Emergency mobile must be exactly 10 digits.';
+    }
+
+    if (!String(formData.hostelPref || '').trim()) {
+      errors.hostelPref = 'Please select a preferred hostel.';
+    }
+
+    if (formData.isMahapolaRecipient === 'yes') {
+      const amount = Number(formData.bursaryAmount);
+      if (!String(formData.bursaryAmount || '').trim() || Number.isNaN(amount) || amount <= 0) {
+        errors.bursaryAmount = 'Please enter a valid bursary amount.';
+      }
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
+
+    const oversizedField = Object.entries(formData).find(
+      ([, val]) => Array.isArray(val) && val.filter(f => f instanceof File).length > MAX_FILES_PER_FIELD
+    );
+    if (oversizedField) {
+      setSubmitError(`You can upload a maximum of ${MAX_FILES_PER_FIELD} files per upload field.`);
+      return;
+    }
+
+    const clientErrors = validateForm();
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setSubmitError('Please correct the highlighted fields and submit again.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const formPayload = new FormData();
       Object.entries(formData).forEach(([key, val]) => {
         if (val === null || val === undefined) return;
-        if (val instanceof File) {
-          formPayload.append(key, val);
+        if (Array.isArray(val)) {
+          val.forEach((file) => {
+            if (file instanceof File) {
+              formPayload.append(key, file);
+            }
+          });
         } else {
           formPayload.append(key, val);
         }
       });
       await applicationApi.submitApplicationAPI(user.id, formPayload);
       await loadMyApplication();
+      setIsResubmitting(false);
+      setFieldErrors({});
+      setSubmitError('');
     } catch (err) {
-      alert(err.message);
+      const backendMessages = getApiErrorMessages(err);
+      if (backendMessages.length > 0) {
+        setFieldErrors((prev) => ({ ...prev, ...mapBackendMessagesToFields(backendMessages) }));
+      }
+      setSubmitError(getApiErrorMessage(err, 'Failed to submit application. Please check your inputs and try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -213,12 +344,18 @@ const StudentApplication = () => {
       <label className="block text-sm font-medium mb-1 dark:text-slate-300">
         📎 {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <input type="file" name={name} onChange={handleChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200"/>
-      {formData[name] && <p className="text-xs text-green-600 mt-1">✓ Selected: {formData[name]?.name || formData[name]}</p>}
+      <input type="file" name={name} multiple onChange={handleChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-slate-700 dark:file:text-slate-200"/>
+      {Array.isArray(formData[name]) && formData[name].length > 0 && (
+        <p className="text-xs text-green-600 mt-1">
+          ✓ Selected {formData[name].length} file(s): {formData[name].map(file => file.name).join(', ')}
+        </p>
+      )}
     </div>
   );
 
   const totalSiblings = parseInt(formData.siblingsSchool || 0) + parseInt(formData.siblingsUni || 0);
+  const canResubmit = application?.status === 'rejected';
+  const showForm = !application || (canResubmit && isResubmitting);
 
   if (loading) return <div className="p-8 text-center">Loading status...</div>;
 
@@ -226,7 +363,7 @@ const StudentApplication = () => {
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
       <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Hostel Application Form</h1>
 
-      {application ? (
+      {application && (
         <div className="space-y-6">
           <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm text-center">
             <div className="mb-6">
@@ -239,6 +376,20 @@ const StudentApplication = () => {
               <p className="text-sm text-blue-600 dark:text-blue-400 mt-4">
                 ℹ️ Your application is under review. You cannot submit a new application while one is pending.
               </p>
+            )}
+            {canResubmit && (
+              <div className="mt-4">
+                <p className="text-sm text-red-600 dark:text-red-400 mb-3">
+                  Your previous application was rejected. You can update details and submit again.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsResubmitting(prev => !prev)}
+                  className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
+                >
+                  {isResubmitting ? 'Cancel Re-submit' : 'Re-submit Application'}
+                </button>
+              </div>
             )}
           </div>
 
@@ -289,8 +440,15 @@ const StudentApplication = () => {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {showForm && (
         <form onSubmit={handleSubmit} className="space-y-8">
+          {submitError && (
+            <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">
+              {submitError}
+            </div>
+          )}
           
           {/* --- SECTION 1: IDENTITY (Pre-filled mostly) --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
@@ -298,38 +456,40 @@ const StudentApplication = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Name in Full</label>
-                    <input type="text" name="fullName" required value={formData.fullName} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    <input type="text" name="fullName" required value={formData.fullName} readOnly className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Name with Initials</label>
-                    <input type="text" name="nameWithInitials" required value={formData.nameWithInitials} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    <input type="text" name="nameWithInitials" required value={formData.nameWithInitials} readOnly className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Index Number</label>
-                    <input type="text" name="indexNumber" required value={formData.indexNumber} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    <input type="text" name="indexNumber" required value={formData.indexNumber} readOnly className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Gender</label>
-                    <select name="gender" value={formData.gender} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                    <select name="gender" value={formData.gender} disabled className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white disabled:opacity-100">
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
                  </div>
                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Permanent Address</label>
-                    <input type="text" name="permanentAddress" required value={formData.permanentAddress} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    <input type="text" name="permanentAddress" required value={formData.permanentAddress} readOnly className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Mobile Phone</label>
-                    <input type="tel" name="mobilePhone" required value={formData.mobilePhone} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    <input type="tel" name="mobilePhone" required value={formData.mobilePhone} readOnly className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    {fieldErrors.mobilePhone && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.mobilePhone}</p>}
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Residence Phone</label>
-                    <input type="tel" name="residentPhone" value={formData.residentPhone} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    <input type="tel" name="residentPhone" value={formData.residentPhone} readOnly className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    {fieldErrors.residentPhone && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.residentPhone}</p>}
                  </div>
                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Email Address</label>
-                    <input type="email" name="email" required value={formData.email} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    <input type="email" name="email" required value={formData.email} readOnly className="w-full p-2 border rounded bg-slate-100 dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                  </div>
             </div>
           </div>
@@ -337,42 +497,47 @@ const StudentApplication = () => {
           {/* ... (Keep Sections 2 - 8 exactly as they were in the previous step) ... */}
           {/* I will omit repeating Sections 2-8 here to save space, assuming they remain unchanged from the previous file content I generated. 
               The key change is the initial state in useState and the rendering of Section 1 above. */}
-          
-          {/* Re-inserting Section 2 just to ensure context continuity if you copy-paste the whole block */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
-            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">2. Residence Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
+
+          /* Re-inserting Section 2 just to ensure context continuity if you copy-paste the whole block */
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
+                <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">2. Residence Details</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">District</label>
                     <select name="district" value={formData.district} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                        <option value="Colombo">Colombo</option>
-                        <option value="Gampaha">Gampaha</option>
-                        <option value="Kandy">Kandy</option>
-                        <option value="Galle">Galle</option>
-                        <option value="Matara">Matara</option>
+                      <option value="">Select District</option>
+                      {districts.map((district) => (
+                        <option key={district} value={district}>
+                          {district}
+                        </option>
+                      ))}
                     </select>
-                 </div>
-                 <div>
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Closest Town</label>
                     <input type="text" name="closestTown" required value={formData.closestTown} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
-                 </div>
-                 <div>
+                    {fieldErrors.closestTown && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.closestTown}</p>}
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Distance to Town (Km)</label>
                     <input type="number" name="distanceToTown" required min="0" value={formData.distanceToTown} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
-                 </div>
-                 <div>
+                    {fieldErrors.distanceToTown && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.distanceToTown}</p>}
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Distance to University (Km)</label>
                     <input type="number" name="distance" required min="0" value={formData.distance} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
-                 </div>
-                 <div>
+                    {fieldErrors.distance && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.distance}</p>}
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Walking distance from bus stop (Km)</label>
                     <input type="number" name="walkingDistance" min="0" step="0.1" value={formData.walkingDistance} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
-                 </div>
-            </div>
-            <FileInput name="file_residence" label="Grama Niladhari Certificate" required />
-          </div>
+                    {fieldErrors.walkingDistance && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.walkingDistance}</p>}
+                   </div>
+                </div>
+                <FileInput name="file_residence" label="Grama Niladhari Certificate" required />
+                </div>
 
-          {/* ... (Include Sections 3, 4, 5, 6, 7, 8 from previous response) ... */}
+                {/* ... (Include Sections 3, 4, 5, 6, 7, 8 from previous response) ... */}
           {/* For brevity, please refer to the complete file content in the previous step for Sections 3-8 as they don't change logic, only data entry */ }
           
            {/* --- SECTION 3: ACADEMIC --- */}
@@ -382,10 +547,12 @@ const StudentApplication = () => {
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Faculty</label>
                     <input type="text" name="faculty" required value={formData.faculty} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    {fieldErrors.faculty && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.faculty}</p>}
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Department</label>
                     <input type="text" name="department" value={formData.department} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                    {fieldErrors.department && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.department}</p>}
                  </div>
                  <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Year</label>
@@ -413,6 +580,7 @@ const StudentApplication = () => {
                 <div className="mt-4 animate-fade-in">
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">If Yes, please state amount (per Month) (Rs.)</label>
                     <input type="number" name="bursaryAmount" value={formData.bursaryAmount} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
+                {fieldErrors.bursaryAmount && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.bursaryAmount}</p>}
                 </div>
             )}
           </div>
@@ -526,6 +694,7 @@ const StudentApplication = () => {
                 <input name="emergencyName" placeholder="Name" required value={formData.emergencyName} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
                 <input name="emergencyAddress" placeholder="Address" required value={formData.emergencyAddress} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
                 <input name="emergencyMobile" placeholder="Mobile No" required value={formData.emergencyMobile} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
+                {fieldErrors.emergencyMobile && <p className="md:col-span-2 -mt-2 text-xs text-red-600 dark:text-red-400">{fieldErrors.emergencyMobile}</p>}
                 <input name="emergencyResidence" placeholder="Residence No" value={formData.emergencyResidence} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600" />
             </div>
           </div>
@@ -568,6 +737,9 @@ const StudentApplication = () => {
           {/* --- SECTION 8: SUBMISSION --- */}
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
             <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">8. Final Submission</h2>
+            <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
+              You can upload up to {MAX_FILES_PER_FIELD} files per upload field.
+            </p>
             <div className="mb-4">
                  <label className="block text-sm font-medium mb-1 dark:text-slate-300">Special Reasons (Optional)</label>
                  <textarea name="specialReasons" value={formData.specialReasons} onChange={handleChange} rows="3" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white"></textarea>
@@ -585,6 +757,7 @@ const StudentApplication = () => {
                     <option key={hostel} value={hostel}>{hostel}</option>
                   ))}
                </select>
+                {fieldErrors.hostelPref && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.hostelPref}</p>}
             </div>
             <button type="submit" disabled={submitting} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition disabled:opacity-50">
                 {submitting ? 'Submitting...' : 'Submit Application'}

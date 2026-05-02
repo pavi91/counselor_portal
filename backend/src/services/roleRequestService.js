@@ -6,15 +6,22 @@ const getRoleRequests = async () => {
 };
 
 const createRoleRequest = async (userId, message, attachment) => {
-  const pending = await roleRequestRepository.findPendingByUserId(userId);
-  if (pending) {
-    const err = new Error('You already have a pending request.');
+  const active = await roleRequestRepository.findActiveByUserId(userId);
+  if (active) {
+    const statusMsg = active.status === 'pending'
+      ? 'You already have a pending request. Please wait for it to be reviewed.'
+      : 'Your previous request was approved. You cannot submit another request.';
+    const err = new Error(statusMsg);
     err.status = 400;
     throw err;
   }
 
   const id = await roleRequestRepository.create({ userId, message, attachment });
   return roleRequestRepository.findById(id);
+};
+
+const getMyRoleRequests = async (userId) => {
+  return roleRequestRepository.findByUserId(userId);
 };
 
 const processRoleRequest = async (requestId, action) => {
@@ -44,5 +51,6 @@ const processRoleRequest = async (requestId, action) => {
 module.exports = {
   getRoleRequests,
   createRoleRequest,
-  processRoleRequest
+  processRoleRequest,
+  getMyRoleRequests
 };

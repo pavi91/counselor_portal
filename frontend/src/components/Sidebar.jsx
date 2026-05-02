@@ -12,7 +12,9 @@ import {
   ClipboardList,
   Ticket,
   UserPlus,
-  User
+  User,
+  BarChart3,
+  HelpCircle,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -79,6 +81,13 @@ const Sidebar = () => {
               isActive={isActive("/counselor/tickets")}
               collapsed={collapsed}
             />
+            <NavItem
+              to="/counselor/faqs"
+              label="FAQ Management"
+              icon={<HelpCircle size={18} />}
+              isActive={isActive("/counselor/faqs")}
+              collapsed={collapsed}
+            />
           </Section>
         )}
 
@@ -131,7 +140,7 @@ const Sidebar = () => {
         )}
 
         {/* SYSTEM */}
-        {perms.canViewUsers && (
+        {perms.canViewUsers && user.role !== "counselor" && (
           <Section title="System" collapsed={collapsed}>
             <NavItem
               to="/management"
@@ -164,6 +173,33 @@ const Sidebar = () => {
               label="Role Requests"
               icon={<ClipboardList size={18} />}
               isActive={isActive("/admin/role-requests")}
+              collapsed={collapsed}
+            />
+          </Section>
+        )}
+
+        {/* REPORTS (Admin Only) */}
+        {perms.canViewReports && (
+          <Section title="Reports" collapsed={collapsed}>
+            <NavItem
+              to="/admin/reports/applications"
+              label="Application Reports"
+              icon={<BarChart3 size={18} />}
+              isActive={isActive("/admin/reports/applications")}
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/admin/reports/tickets"
+              label="Ticket Reports"
+              icon={<BarChart3 size={18} />}
+              isActive={isActive("/admin/reports/tickets")}
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/admin/reports/faqs"
+              label="FAQ Reports"
+              icon={<HelpCircle size={18} />}
+              isActive={isActive("/admin/reports/faqs")}
               collapsed={collapsed}
             />
           </Section>

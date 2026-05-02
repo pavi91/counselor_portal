@@ -166,3 +166,26 @@ CREATE TABLE IF NOT EXISTS ticket_messages (
   CONSTRAINT fk_ticket_messages_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id),
   CONSTRAINT fk_ticket_messages_sender FOREIGN KEY (sender_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
+
+-- FAQ Questions (canned questions managed by counselors)
+CREATE TABLE IF NOT EXISTS faq_questions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_by INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_faq_questions_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+-- FAQ Usage Log (tracks when students use FAQ questions)
+CREATE TABLE IF NOT EXISTS faq_usage_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  faq_question_id INT NOT NULL,
+  student_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_faq_usage_question FOREIGN KEY (faq_question_id) REFERENCES faq_questions(id),
+  CONSTRAINT fk_faq_usage_student FOREIGN KEY (student_id) REFERENCES users(id)
+) ENGINE=InnoDB;

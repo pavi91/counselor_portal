@@ -30,7 +30,7 @@ const CounselorTickets = () => {
 
   const handleReply = async (e) => {
     e.preventDefault();
-    if (!replyText.trim() && !attachment) return;
+    if (!replyText.trim()) return;
     try {
       await ticketApi.replyToTicketAPI(selectedTicket.id, user.id, replyText, attachment);
       setReplyText('');
@@ -179,7 +179,7 @@ const CounselorTickets = () => {
                  />
                  <button 
                     type="submit" 
-                    disabled={selectedTicket.status === 'closed' || (!replyText.trim() && !attachment)}
+                    disabled={selectedTicket.status === 'closed' || !replyText.trim()}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white px-4 py-2 rounded-lg font-bold transition"
                  >
                     Send

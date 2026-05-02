@@ -90,7 +90,24 @@ const bulkCreateUsers = async (users) => {
       results.added += 1;
     } catch (err) {
       results.failed += 1;
-      results.errors.push({ email: user.email, message: err.message });
+      
+      // Extract meaningful error message
+      let errorMsg = err.message;
+      
+      // Check for duplicate constraint violations
+      if (err.message.includes('ER_DUP_ENTRY') || err.message.includes('already exists')) {
+        if (user.email) {
+          errorMsg = `Duplicate email: ${user.email}`;
+        } else if (user.indexNumber) {
+          errorMsg = `Duplicate index number: ${user.indexNumber}`;
+        }
+      }
+      
+      results.errors.push({ 
+        email: user.email || 'N/A', 
+        indexNumber: user.indexNumber || 'N/A',
+        message: errorMsg 
+      });
     }
   }
   return results;
