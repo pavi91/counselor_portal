@@ -759,10 +759,6 @@ mysql -u db_user -p counselor_portal < backend/sql/seed.sql
 
 ---
 
-## 📄 License
-
-This project is part of the University of Moratuwa Counselor Portal system.
-
 ---
 
 ## 🎯 Key Highlights
