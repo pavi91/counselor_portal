@@ -94,6 +94,39 @@ const UserManagement = () => {
     document.body.removeChild(link);
   };
 
+  // Proper CSV parser that handles quoted fields with commas
+  const parseCSVLine = (line) => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Escaped quote
+          current += '"';
+          i++;
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // Field separator
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+
+    // Add the last field
+    result.push(current.trim());
+    return result;
+  };
+
   const handleBulkUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -104,42 +137,68 @@ const UserManagement = () => {
     reader.onload = async (evt) => {
       try {
         const text = evt.target.result;
-        const lines = text.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim());
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) {
+          setError("CSV file must contain header row and at least one data row.");
+          return;
+        }
+
+        const headerLine = lines[0];
+        const headers = parseCSVLine(headerLine).map(h => h.replace(/^"|"$/g, '').trim());
         
         const newUsers = [];
-        for(let i=1; i<lines.length; i++) {
-            if(!lines[i].trim()) continue;
-            const values = lines[i].split(',');
-            const userObj = {};
-            
-            headers.forEach((h, index) => {
-                let val = values[index]?.trim();
-                if (val && val.startsWith('"') && val.endsWith('"')) {
-                    val = val.substring(1, val.length - 1);
-                }
-                userObj[h] = val;
-            });
+        const parseErrors = [];
 
-            if (userObj.email) {
-                if (!userObj.password) userObj.password = '123';
-                if (!userObj.role) userObj.role = 'student';
-                if (!userObj.name && userObj.nameWithInitials) userObj.name = userObj.nameWithInitials;
-                newUsers.push(userObj);
+        for(let i=1; i<lines.length; i++) {
+            try {
+              if(!lines[i].trim()) continue;
+              
+              const values = parseCSVLine(lines[i]);
+              const userObj = {};
+              
+              headers.forEach((h, index) => {
+                  let val = values[index]?.trim() || '';
+                  // Remove surrounding quotes if present
+                  if (val.startsWith('"') && val.endsWith('"')) {
+                      val = val.substring(1, val.length - 1);
+                  }
+                  if (val) {
+                    userObj[h] = val;
+                  }
+              });
+
+              if (userObj.email) {
+                  if (!userObj.password) userObj.password = '123';
+                  if (!userObj.role) userObj.role = 'student';
+                  if (!userObj.name && userObj.nameWithInitials) userObj.name = userObj.nameWithInitials;
+                  newUsers.push(userObj);
+              }
+            } catch (lineError) {
+              parseErrors.push(`Row ${i + 1}: ${lineError.message}`);
             }
         }
 
         if (newUsers.length === 0) {
-            setError("No valid users found in CSV.");
+            setError("No valid users found in CSV." + (parseErrors.length ? "\n\n" + parseErrors.join("\n") : ""));
             return;
         }
 
         const result = await userApi.bulkCreateUsersAPI(newUsers);
-        setSuccessMsg(`Bulk upload complete. Added: ${result.added}, Failed/Skipped: ${result.failed}`);
+        
+        let successMessage = `Bulk upload complete. Added: ${result.added}, Failed/Skipped: ${result.failed}`;
+        if (result.errors && result.errors.length > 0) {
+          const errorSummary = result.errors.slice(0, 5).map(e => `${e.email}: ${e.message}`).join('\n');
+          successMessage += `\n\nSample errors:\n${errorSummary}`;
+          if (result.errors.length > 5) {
+            successMessage += `\n... and ${result.errors.length - 5} more errors`;
+          }
+        }
+        
+        setSuccessMsg(successMessage);
         loadData();
         if (fileInputRef.current) fileInputRef.current.value = "";
       } catch (err) {
-        setError("Failed to process CSV file.");
+        setError("Failed to process CSV file: " + err.message);
       }
     };
     reader.readAsText(file);

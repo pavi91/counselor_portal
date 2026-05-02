@@ -126,6 +126,7 @@ INSERT INTO hostels (name, gender, year_group) VALUES
   ('Nugasewana -2', 'female', 'final_year'),
   ('B Hostel', 'female', 'first_year'),
   ('C Hostel', 'female', 'first_year'),
+  ('Kilinochchi', 'any', 'any'),
   ('General Hostel', 'any', 'any')
 ON DUPLICATE KEY UPDATE name = VALUES(name), gender = VALUES(gender), year_group = VALUES(year_group);
 

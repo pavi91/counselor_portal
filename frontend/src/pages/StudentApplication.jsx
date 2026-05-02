@@ -8,6 +8,13 @@ import { getApiErrorMessage, getApiErrorMessages } from '../api/apiClient';
 
 const MAX_FILES_PER_FIELD = 5;
 const PHONE_REGEX = /^[0-9]{10}$/;
+const districts = [
+  "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
+  "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
+  "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
+  "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
+  "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
+];
 
 const StudentApplication = () => {
   const { user } = useAuth(); // Now contains full details from login
@@ -490,63 +497,47 @@ const StudentApplication = () => {
           {/* ... (Keep Sections 2 - 8 exactly as they were in the previous step) ... */}
           {/* I will omit repeating Sections 2-8 here to save space, assuming they remain unchanged from the previous file content I generated. 
               The key change is the initial state in useState and the rendering of Section 1 above. */}
-          
-          {/* Re-inserting Section 2 just to ensure context continuity if you copy-paste the whole block */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
-            <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">2. Residence Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
+
+          /* Re-inserting Section 2 just to ensure context continuity if you copy-paste the whole block */
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border dark:border-slate-700">
+                <h2 className="text-xl font-bold mb-4 dark:text-white border-b pb-2 dark:border-slate-700">2. Residence Details</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">District</label>
                     <select name="district" value={formData.district} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
-                        <option value="">Select District</option>
-                        <option value="Colombo">Colombo</option>
-                        <option value="Gampaha">Gampaha</option>
-                        <option value="Kalutara">Kalutara</option>
-                        <option value="Kandy">Kandy</option>
-                        <option value="Matale">Matale</option>
-                        <option value="Nuwara Eliya">Nuwara Eliya</option>
-                        <option value="Galle">Galle</option>
-                        <option value="Matara">Matara</option>
-                        <option value="Hambantota">Hambantota</option>
-                        <option value="Jaffna">Jaffna</option>
-                        <option value="Mullaitivu">Mullaitivu</option>
-                        <option value="Batticaloa">Batticaloa</option>
-                        <option value="Trincomalee">Trincomalee</option>
-                        <option value="Kurunegala">Kurunegala</option>
-                        <option value="Puttalam">Puttalam</option>
-                        <option value="Anuradhapura">Anuradhapura</option>
-                        <option value="Polonnaruwa">Polonnaruwa</option>
-                        <option value="Badulla">Badulla</option>
-                        <option value="Monaragala">Monaragala</option>
-                        <option value="Ratnapura">Ratnapura</option>
-                        <option value="Kegalle">Kegalle</option>
+                      <option value="">Select District</option>
+                      {districts.map((district) => (
+                        <option key={district} value={district}>
+                          {district}
+                        </option>
+                      ))}
                     </select>
-                 </div>
-                 <div>
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Closest Town</label>
                     <input type="text" name="closestTown" required value={formData.closestTown} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                     {fieldErrors.closestTown && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.closestTown}</p>}
-                 </div>
-                 <div>
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Distance to Town (Km)</label>
                     <input type="number" name="distanceToTown" required min="0" value={formData.distanceToTown} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                     {fieldErrors.distanceToTown && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.distanceToTown}</p>}
-                 </div>
-                 <div>
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Distance to University (Km)</label>
                     <input type="number" name="distance" required min="0" value={formData.distance} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                     {fieldErrors.distance && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.distance}</p>}
-                 </div>
-                 <div>
+                   </div>
+                   <div>
                     <label className="block text-sm font-medium mb-1 dark:text-slate-300">Walking distance from bus stop (Km)</label>
                     <input type="number" name="walkingDistance" min="0" step="0.1" value={formData.walkingDistance} onChange={handleChange} className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" />
                     {fieldErrors.walkingDistance && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.walkingDistance}</p>}
-                 </div>
-            </div>
-            <FileInput name="file_residence" label="Grama Niladhari Certificate" required />
-          </div>
+                   </div>
+                </div>
+                <FileInput name="file_residence" label="Grama Niladhari Certificate" required />
+                </div>
 
-          {/* ... (Include Sections 3, 4, 5, 6, 7, 8 from previous response) ... */}
+                {/* ... (Include Sections 3, 4, 5, 6, 7, 8 from previous response) ... */}
           {/* For brevity, please refer to the complete file content in the previous step for Sections 3-8 as they don't change logic, only data entry */ }
           
            {/* --- SECTION 3: ACADEMIC --- */}
