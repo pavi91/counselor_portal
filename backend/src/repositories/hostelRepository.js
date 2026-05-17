@@ -143,6 +143,14 @@ const getRoomById = async (roomId) => {
   return rows[0] || null;
 };
 
+const deleteRoomById = async (roomId) => {
+  const [result] = await db.query(
+    `DELETE FROM rooms WHERE id = ?`,
+    [roomId]
+  );
+  return result.affectedRows > 0;
+};
+
 module.exports = {
   getHostels,
   getHostelById,
@@ -155,4 +163,5 @@ module.exports = {
   createRoom,
   findRoomByHostelAndNumber,
   getRoomById
+  ,deleteRoomById
 };

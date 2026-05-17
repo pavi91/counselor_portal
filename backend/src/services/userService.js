@@ -15,6 +15,7 @@ const getUsersByRole = async (roleName, query = '') => {
 };
 
 const createUser = async (user) => {
+  console.log(`Creating user email: ${user.email}`);
   const existing = await userRepository.findByEmail(user.email);
   if (existing) {
     const err = new Error(`User with email ${user.email} already exists`);

@@ -75,6 +75,16 @@ const createRoom = async (req, res, next) => {
   }
 };
 
+const deleteRoom = async (req, res, next) => {
+  try {
+    const roomId = parseInt(req.params.roomId, 10);
+    const result = await hostelService.deleteRoom(roomId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getHostels,
   getHostelStats,
@@ -83,4 +93,5 @@ module.exports = {
   assignRoom,
   removeAllocation,
   createRoom
+  ,deleteRoom
 };

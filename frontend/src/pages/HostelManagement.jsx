@@ -132,6 +132,18 @@ const HostelManagement = () => {
     }
   };
 
+    const handleDeleteRoom = async () => {
+        if(!window.confirm('Delete this room? This cannot be undone.')) return;
+        try {
+            await hostelApi.deleteRoomAPI(selectedRoom.id);
+            setSuccess(`Room ${selectedRoom.number} deleted`);
+            setSelectedRoom(null);
+            loadStats();
+        } catch (err) {
+            alert(err.message);
+        }
+    };
+
   const handleCreateRoom = async (e) => {
     e.preventDefault();
     try {
@@ -247,6 +259,11 @@ const HostelManagement = () => {
                     </h4>
                     <div className="space-y-2">
                         {selectedRoom.occupants.length === 0 && <p className="text-sm text-slate-400 italic">Room is empty.</p>}
+                        {selectedRoom.occupants.length === 0 && perms.canCreateRoom && (
+                            <div className="pt-2">
+                                <button onClick={handleDeleteRoom} className="text-sm text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2 rounded font-medium">Delete Room</button>
+                            </div>
+                        )}
                         {selectedRoom.occupants.map(occ => (
                             <div key={occ.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border dark:border-slate-700">
                                 <div className="flex-1">

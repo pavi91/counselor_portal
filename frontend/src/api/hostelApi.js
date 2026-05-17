@@ -42,3 +42,8 @@ export const createRoomAPI = async (roomData) => {
   const response = await apiClient.post('/hostels/rooms', roomData);
   return response.data;
 };
+
+export const deleteRoomAPI = async (roomId) => {
+  const response = await apiClient.delete(`/hostels/rooms/${roomId}`);
+  return response.data;
+};

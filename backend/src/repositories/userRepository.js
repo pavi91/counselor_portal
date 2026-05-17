@@ -83,8 +83,8 @@ const createUser = async (user) => {
   const [result] = await db.query(
     `INSERT INTO users (
       email, password_hash, role_id, name, index_number, full_name, name_with_initials,
-      permanent_address, resident_phone, mobile_phone, gender
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+      permanent_address, temp_address, resident_phone, mobile_phone, gender
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
     [
       user.email,
       user.passwordHash,
@@ -94,6 +94,7 @@ const createUser = async (user) => {
       user.fullName || null,
       user.nameWithInitials || null,
       user.permanentAddress || null,
+      user.tempAddress || null,
       user.residentPhone || null,
       user.mobilePhone || null,
       user.gender || null

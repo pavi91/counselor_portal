@@ -123,6 +123,31 @@ const createRoom = async (roomData) => {
   return { id, hostel: hostel.name, hostelId: hostel.id, number: roomData.number, floor: roomData.floor, capacity: roomData.capacity, type: roomData.type };
 };
 
+const deleteRoom = async (roomId) => {
+  const room = await hostelRepository.getRoomById(roomId);
+  if (!room) {
+    const err = new Error('Room not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const allocations = await hostelRepository.getAllocationsByRoomId(roomId);
+  if (allocations.length > 0) {
+    const err = new Error('Cannot delete room: room is not empty');
+    err.status = 400;
+    throw err;
+  }
+
+  const deleted = await hostelRepository.deleteRoomById(roomId);
+  if (!deleted) {
+    const err = new Error('Failed to delete room');
+    err.status = 500;
+    throw err;
+  }
+
+  return { success: true };
+};
+
 module.exports = {
   getHostels,
   getHostelStats,
@@ -131,4 +156,5 @@ module.exports = {
   assignRoom,
   removeAllocation,
   createRoom
+  ,deleteRoom
 };

@@ -346,4 +346,43 @@ router.delete('/allocations/:userId', authMiddleware, rbacMiddleware('hostels.ma
  */
 router.post('/rooms', authMiddleware, rbacMiddleware('hostels.manage'), validateRoomCreate, hostelController.createRoom);
 
+/**
+ * @swagger
+ * /api/hostels/rooms/{roomId}:
+ *   delete:
+ *     summary: Delete an empty room
+ *     description: Delete a room only if it has no current occupants
+ *     tags:
+ *       - Hostels
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: roomId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Room ID to delete
+ *     responses:
+ *       200:
+ *         description: Room deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Room not empty or invalid request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Room not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/rooms/:roomId', authMiddleware, rbacMiddleware('hostels.manage'), hostelController.deleteRoom);
+
 module.exports = router;
